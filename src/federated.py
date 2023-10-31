@@ -358,7 +358,7 @@ if __name__ == '__main__':
         for anp_eps in [0.4]:
             for anp_steps in [1]:
                 for anp_alpha in [0.2]:
-                    for round in [50]:
+                    for round in [5]:
                         local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                         logging.info(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
                         with torch.no_grad():

@@ -286,7 +286,7 @@ def mask_train(model, criterion, mask_opt, noise_opt, data_loader):
         loss.backward()
         mask_opt.step()
         clip_mask(model)
-        # print(f'loss:{loss} loss_nat:{loss_nat} loss_rob:{loss_rob}')
+        print(f'loss:{loss} loss_nat:{loss_nat} loss_rob:{loss_rob}')
         if nb_samples > max_nb_samples:
             break
 
