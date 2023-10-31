@@ -314,9 +314,8 @@ if __name__ == '__main__':
     # logging.info(mask_aggrement)
     rnd = 0
     logging.info('Training has finished!')
-
-
-
+    if args.rounds != 0:
+        exit()
 
     with torch.no_grad():
         val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,
