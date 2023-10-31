@@ -9,6 +9,7 @@ from torchvision.datasets import CIFAR10
 import torchvision.transforms as transforms
 
 from anp_batchnorm import NoisyBatchNorm2d, NoisyBatchNorm1d
+import torch.nn as nn
 # import data.poison_cifar as poison
 
 # parser = argparse.ArgumentParser(description='Train poisoned networks')
