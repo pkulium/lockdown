@@ -312,6 +312,7 @@ if __name__ == '__main__':
                 }, PATH)
 
     # logging.info(mask_aggrement)
+    rnd = 0
     logging.info('Training has finished!')
     args.val_frac = 0.01
     args.clean_label = -1
