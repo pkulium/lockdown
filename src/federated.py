@@ -336,10 +336,10 @@ if __name__ == '__main__':
                         with torch.no_grad():
                             val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,
                                                                                   args, rnd, num_target)
-                            # writer.add_scalar('Validation/Loss', val_loss, rnd)
-                            # writer.add_scalar('Validation/Accuracy', val_acc, rnd)
-                            logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-                            logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+                            # logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                            # logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+                            print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                            print(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
                             acc_vec.append(val_acc)
                             per_class_vec.append(val_per_class_acc)
 
@@ -347,13 +347,15 @@ if __name__ == '__main__':
                                                                                             poisoned_val_loader, args, rnd, num_target)
                             cum_poison_acc_mean += asr
                             asr_vec.append(asr)
-                            logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+                            # logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+                            print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
 
                             poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
                                                                                                 poisoned_val_only_x_loader, args,
                                                                                                 rnd, num_target)
                             pacc_vec.append(poison_acc)
-                            logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
+                            # logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
+                            print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
 
     for rnd in tqdm(range(1, 1)):
         logging.info("--------round {} ------------".format(rnd))
