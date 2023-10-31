@@ -161,6 +161,7 @@ if __name__ == '__main__':
     for rnd in range(1, args.rounds + 1):
 
         logging.info("--------round {} ------------".format(rnd))
+        print("--------round {} ------------".format(rnd))
         # mask = torch.ones(n_model_params)
         rnd_global_params = parameters_to_vector([ copy.deepcopy(global_model.state_dict()[name]) for name in global_model.state_dict()])
 
