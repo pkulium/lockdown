@@ -14,6 +14,8 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 from torch.nn.utils import parameters_to_vector
 from tqdm import tqdm
+import data.poison_cifar as poison
+from torch.utils.data import DataLoader, RandomSampler
 
 import logging
 
@@ -308,3 +310,69 @@ if __name__ == '__main__':
 
     # logging.info(mask_aggrement)
     logging.info('Training has finished!')
+    
+     _, clean_val = poison.split_dataset(dataset=train_dataset, val_frac=args.val_frac,
+                                        perm=np.loadtxt('./data/cifar_shuffle.txt', dtype=int), clean_label = args.clean_label)
+    random_sampler = RandomSampler(data_source=clean_val, replacement=True,
+                            num_samples=args.print_every * args.batch_size)
+    server_train_loader = DataLoader(clean_val, batch_size=args.batch_size,
+                            shuffle=False, sampler=random_sampler, num_workers=0)
+
+    for rnd in tqdm(range(1, 2)):
+        logging.info("--------round {} ------------".format(rnd))
+        print("--------round {} ------------".format(rnd))
+        # mask = torch.ones(n_model_params)
+        rnd_global_params = parameters_to_vector([ copy.deepcopy(global_model.state_dict()[name]) for name in global_model.state_dict()])
+
+        # agent_updates_dict_prev = copy.deepcopy(agent_updates_dict)
+        agent_updates_dict = {}
+        chosen = np.random.choice(args.num_agents, math.floor(args.num_agents * args.agent_frac), replace=False)
+        if args.method == "lockdown" or args.method == "fedimp":
+            old_mask = [copy.deepcopy(agent.mask) for agent in agents]
+        for agent_id in chosen:
+            # logging.info(torch.sum(rnd_global_params))
+            global_model = global_model.to(args.device)
+            if args.method == "lockdown" or args.method == "fedimp":
+                update = agents[agent_id].local_train(global_model, criterion, rnd, global_mask=global_mask, neurotoxin_mask = neurotoxin_mask, updates_dict=updates_dict)
+            else:
+                update = agents[agent_id].local_train(global_model, criterion, rnd, neurotoxin_mask=neurotoxin_mask)
+            agent_updates_dict[agent_id] = update
+            utils.vector_to_model(copy.deepcopy(rnd_global_params), global_model)
+
+        # aggregate params obtained by agents and update the global params
+        if args.method == "lockdown" or args.method == "fedimp":
+            _, _, updates_dict,neurotoxin_mask = aggregator.aggregate_updates(global_model, agent_updates_dict, rnd, masks=old_mask,
+                                                   agent_updates_dict_prev=None,
+                                                   mask_aggrement=mask_aggrement)
+        else:
+            _, _, updates_dict,neurotoxin_mask = aggregator.aggregate_updates(global_model, agent_updates_dict, rnd,
+                                                   agent_updates_dict_prev=None,
+                                                   mask_aggrement=mask_aggrement)
+        # agent_updates_list.append(np.array(server_update.to("cpu")))
+        worker_id_list.append(agent_id + 1)
+
+
+
+        # inference in every args.snap rounds
+        if rnd % args.snap == 0:
+            val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,
+                                                                                  args, rnd, num_target)
+            # writer.add_scalar('Validation/Loss', val_loss, rnd)
+            # writer.add_scalar('Validation/Accuracy', val_acc, rnd)
+            logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+            logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+            acc_vec.append(val_acc)
+            per_class_vec.append(val_per_class_acc)
+
+            poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
+                                                                            poisoned_val_loader, args, rnd, num_target)
+            cum_poison_acc_mean += asr
+            asr_vec.append(asr)
+            logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+
+            poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
+                                                                                   poisoned_val_only_x_loader, args,
+                                                                                   rnd, num_target)
+            pacc_vec.append(poison_acc)
+            logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
+
