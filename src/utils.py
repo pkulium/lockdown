@@ -10,6 +10,8 @@ from math import floor
 from collections import defaultdict
 import random
 import math
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class H5Dataset(Dataset):
