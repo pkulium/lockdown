@@ -313,7 +313,10 @@ if __name__ == '__main__':
 
     # logging.info(mask_aggrement)
     logging.info('Training has finished!')
-    
+    args.val_frac = 0.01
+    args.clean_label = -1
+    args.print_every = 500
+    args.batch_size = 128
     _, clean_val = poison.split_dataset(dataset=train_dataset, val_frac=args.val_frac,
                                         perm=np.loadtxt('./cifar_shuffle.txt', dtype=int), clean_label = args.clean_label)
     random_sampler = RandomSampler(data_source=clean_val, replacement=True,
