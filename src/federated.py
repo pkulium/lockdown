@@ -354,7 +354,7 @@ if __name__ == '__main__':
                             shuffle=False, sampler=random_sampler, num_workers=0)
     best_val_acc = 0
     best_poison_acc = 1
-    for mask_lr in [0.1]:
+    for mask_lr in [0.01, 0.1]:
         for anp_eps in [0.4]:
             for anp_steps in [1]:
                 for anp_alpha in [0.2]:
