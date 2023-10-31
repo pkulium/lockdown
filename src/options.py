@@ -74,9 +74,9 @@ def args_parser():
                         help="num of workers for multithreading")
     parser.add_argument('--se_threshold', type=float, default=1e-4,
                         help="num of workers for multithreading")
-    parser.add_argument('--non_iid', action='store_true', default=False)
+    parser.add_argument('--non_iid', action='store_true', default=True)
     parser.add_argument('--debug', action='store_true', default=False)
-    parser.add_argument('--alpha',type=float, default=0.5)
+    parser.add_argument('--alpha',type=float, default=1)
     parser.add_argument('--attack',type=str, default="badnet")
     parser.add_argument('--lr_decay',type=float, default= 1)
     parser.add_argument('--mask_init', type=str, default="ERK")
