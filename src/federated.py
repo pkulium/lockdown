@@ -314,6 +314,34 @@ if __name__ == '__main__':
     # logging.info(mask_aggrement)
     rnd = 0
     logging.info('Training has finished!')
+
+
+
+
+    with torch.no_grad():
+        val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,
+                                                                args, rnd, num_target)
+        # logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+        # logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+        print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+        print(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+        acc_vec.append(val_acc)
+        per_class_vec.append(val_per_class_acc)
+
+        poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
+                                                                        poisoned_val_loader, args, rnd, num_target)
+        cum_poison_acc_mean += asr
+        asr_vec.append(asr)
+        # logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+        print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+
+        poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
+                                                                            poisoned_val_only_x_loader, args,
+                                                                            rnd, num_target)
+        pacc_vec.append(poison_acc)
+        # logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
+        print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
+
     args.val_frac = 0.01
     args.clean_label = -1
     args.print_every = 500
@@ -334,7 +362,7 @@ if __name__ == '__main__':
                         local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                         logging.info(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
                         with torch.no_grad():
-                            val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,
+                            val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader,
                                                                                   args, rnd, num_target)
                             # logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
                             # logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
@@ -343,14 +371,14 @@ if __name__ == '__main__':
                             acc_vec.append(val_acc)
                             per_class_vec.append(val_per_class_acc)
 
-                            poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
+                            poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion,
                                                                                             poisoned_val_loader, args, rnd, num_target)
                             cum_poison_acc_mean += asr
                             asr_vec.append(asr)
                             # logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
                             print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
 
-                            poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
+                            poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion,
                                                                                                 poisoned_val_only_x_loader, args,
                                                                                                 rnd, num_target)
                             pacc_vec.append(poison_acc)
