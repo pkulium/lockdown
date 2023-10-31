@@ -13,6 +13,7 @@ import random
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from torch.nn.utils import parameters_to_vector
+from tqdm import tqdm
 
 import logging
 
@@ -158,7 +159,7 @@ if __name__ == '__main__':
     clean_pacc_vec = []
     clean_per_class_vec = []
 
-    for rnd in range(1, args.rounds + 1):
+    for rnd in range tqdm((1, args.rounds + 1)):
 
         logging.info("--------round {} ------------".format(rnd))
         print("--------round {} ------------".format(rnd))
