@@ -360,7 +360,8 @@ if __name__ == '__main__':
                 for anp_alpha in [0.2]:
                     for round in [5, 25]:
                         local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
-                        logging.info(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
+                        print('-' * 64)
+                        print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
                         with torch.no_grad():
                             val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader,
                                                                                   args, rnd, num_target)
