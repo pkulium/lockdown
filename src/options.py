@@ -7,13 +7,13 @@ def args_parser():
     parser.add_argument('--data', type=str, default='cifar10',
                         help="dataset we want to train on")
     
-    parser.add_argument('--num_agents', type=int, default=40,
+    parser.add_argument('--num_agents', type=int, default=10,
                         help="number of agents:K")
     
     parser.add_argument('--agent_frac', type=float, default=1,
                         help="fraction of agents per round:C")
     
-    parser.add_argument('--num_corrupt', type=int, default=4,
+    parser.add_argument('--num_corrupt', type=int, default=1,
                         help="number of corrupt agents")
     
     parser.add_argument('--rounds', type=int, default=200,
