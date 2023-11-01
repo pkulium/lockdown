@@ -356,7 +356,7 @@ if __name__ == '__main__':
                     for anp_alpha in [0.2]:
                         for round in [10]:
                             local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
-                            id2mask_values[-1] = torch.tensor([mask_values[i][-1] for i in range(len(mask_values))])
+                            id2mask_values[-1] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values))]])
                             # print('-' * 64)
                             # print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
                             # nb_max, nb_step = len(mask_values), 100
@@ -396,7 +396,7 @@ if __name__ == '__main__':
             print('-' * 64)
             global_model = global_model.to(args.device)
             local_model, mask_values =  train_mask(agent_id, global_model, criterion, agents[agent_id].train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
-            id2mask_values[agent_id] = torch.tensor([mask_values[i][-1] for i in range(len(mask_values))])
+            id2mask_values[agent_id] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values))]])
             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
             with torch.no_grad():
                 val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader,args, rnd, num_target)
