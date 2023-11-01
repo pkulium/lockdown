@@ -372,8 +372,8 @@ if __name__ == '__main__':
                                 if asr < best_asr:
                                     best_asr = asr
                                     best_asr_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
-    print(f'{best_val_acc}, {best_val_acc_}')
-    print(f'{best_asr}, {best_asr_}')
+    # print(f'{best_val_acc}, {best_val_acc_}')
+    # print(f'{best_asr}, {best_asr_}')
 
     for rnd in tqdm(range(1, 1)):
         print("--------round {} ------------".format(rnd))
