@@ -383,8 +383,7 @@ if __name__ == '__main__':
                                     best_asr_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
     print(f'{best_val_acc}, {best_val_acc_}')
     print(f'{best_asr}, {best_asr_}')
-
-    mask_lr, anp_eps, anp_steps, anp_alpha, round = 0.01, 0.4, 1, 0.2, 10
+    mask_lr, anp_eps, anp_steps, anp_alpha, round = 0.1, 1.0, 1, 0.2, 10
     cos_matrix = {}
     for rnd in tqdm(range(1, 2)):
         rnd_global_params = parameters_to_vector([ copy.deepcopy(global_model.state_dict()[name]) for name in global_model.state_dict()])
