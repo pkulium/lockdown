@@ -386,7 +386,7 @@ if __name__ == '__main__':
     print(f'{best_asr}, {best_asr_}')
 
     mask_lr, anp_eps, anp_steps, anp_alpha, round = 0.01, 0.4, 1, 0.2, 10
-
+    cos_matrix = {}
     for rnd in tqdm(range(1, 2)):
         print("--------round {} ------------".format(rnd))
         rnd_global_params = parameters_to_vector([ copy.deepcopy(global_model.state_dict()[name]) for name in global_model.state_dict()])
@@ -409,3 +409,8 @@ if __name__ == '__main__':
                 asr_vec.append(asr)
                 print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
 
+        cos = nn.CosineSimilarity(dim=1, eps=1e-6)
+        for agent_id in chosen:
+            cos_matrix[agent_id] = cos(id2mask_values[agent_id], id2mask_values[-1])
+        print(cos_matrix)
+            
