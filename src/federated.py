@@ -341,7 +341,7 @@ if __name__ == '__main__':
         # logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
         print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
 
-    args.val_frac = 0.01
+    args.val_frac = 0.1
     args.clean_label = -1
     args.print_every = 500
     args.batch_size = 128
@@ -358,7 +358,7 @@ if __name__ == '__main__':
             for anp_eps in [0.6, 0.8, 1.0, 1.2]:
                 for anp_steps in [1, 5, 10]:
                     for anp_alpha in [0.2, 0.4, 0.6]:
-                        for round in [1, 5, 10, 25]:
+                        for round in [5, 10, 25]:
     # |settings: 0.1, 1.0, 1, 0.2, 10 |
     # for _ in range(10):
     #     for mask_lr in [0.2]:
