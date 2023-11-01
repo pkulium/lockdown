@@ -410,7 +410,8 @@ if __name__ == '__main__':
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         for agent_id in chosen:
-            print(id2mask_values[agent_id])
+            print(id2mask_values[agent_id].shape)
+            print(id2mask_values[-1].shape)
             cos_matrix[agent_id] = cos(id2mask_values[agent_id], id2mask_values[-1])
         print(cos_matrix)
             
