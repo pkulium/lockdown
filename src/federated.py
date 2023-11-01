@@ -353,16 +353,16 @@ if __name__ == '__main__':
                             shuffle=False, sampler=random_sampler, num_workers=0)
     best_val_acc = 0
     best_asr = 1
-    # for mask_lr in [0.01, 0.1]:
-    #     for anp_eps in [0, 0.4, 1.0]:
-    #         for anp_steps in [1]:
-    #             for anp_alpha in [0.2]:
-    #                 for round in [5, 50]:
-    for mask_lr in [0.1]:
-        for anp_eps in [1.0]:
+    for mask_lr in [0.01, 0.1]:
+        for anp_eps in [0, 0.4, 1.0]:
             for anp_steps in [1]:
                 for anp_alpha in [0.2]:
-                    for round in [50]:
+                    for round in [5, 50]:
+    # for mask_lr in [0.1]:
+    #     for anp_eps in [1.0]:
+    #         for anp_steps in [1]:
+    #             for anp_alpha in [0.2]:
+    #                 for round in [50]:
                         local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                         print('-' * 64)
                         print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
