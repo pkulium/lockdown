@@ -348,7 +348,7 @@ if __name__ == '__main__':
     #                 for anp_alpha in [0.2, 0.4, 0.6]:
     #                     for round in [5, 10, 25]:
     # |settings: 0.1, 1.0, 1, 0.2, 10 |
-    for _ in range(10):
+    for repeate in range(5):
         for mask_lr in [0.01]:
             for anp_eps in [2]:
                 for anp_steps in [1]:
