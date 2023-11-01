@@ -168,6 +168,23 @@ def prune_by_threshold(model, mask_values, pruning_max, pruning_step):
         if float(mask_values[idx][2]) <= pruning_max:
             pruning(model, mask_values[idx])
 
+def prune_by_number(model, mask_values, pruning_max, pruning_step, criterion, clean_loader, poison_loader):
+    results = []
+    nb_max = int(np.ceil(pruning_max))
+    nb_step = int(np.ceil(pruning_step))
+    for start in range(0, nb_max + 1, nb_step):
+        i = start
+        for i in range(start, start + nb_step):
+            pruning(model, mask_values[i])
+        layer_name, neuron_idx, value = mask_values[i][0], mask_values[i][1], mask_values[i][2]
+        cl_loss, cl_acc = test(model=model, criterion=criterion, data_loader=clean_loader)
+        po_loss, po_acc = test(model=model, criterion=criterion, data_loader=poison_loader)
+        print('{} \t {} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f}'.format(
+            i+1, layer_name, neuron_idx, value, po_loss, po_acc, cl_loss, cl_acc))
+        results.append('{} \t {} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f} \t {:.4f}'.format(
+            i+1, layer_name, neuron_idx, value, po_loss, po_acc, cl_loss, cl_acc))
+    return results
+
 def test(model, criterion, data_loader):
     model.eval()
     total_correct = 0
