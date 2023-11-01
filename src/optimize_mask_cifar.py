@@ -251,7 +251,7 @@ def mask_train(model, criterion, mask_opt, noise_opt, data_loader):
 
         # step 1: calculate the adversarial perturbation for neurons
         if model.anp_eps > 0.0:
-            reset(model, rand_init=False)
+            reset(model, rand_init=True)
             for _ in range(model.anp_steps):
                 noise_opt.zero_grad()
 
