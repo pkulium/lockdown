@@ -341,19 +341,19 @@ if __name__ == '__main__':
                             shuffle=False, sampler=random_sampler, num_workers=0)
     best_val_acc = 0
     best_asr = 1
-    # for _ in range(1):
-    #     for mask_lr in [0.01, 0.1]:
-    #         for anp_eps in [0.6, 0.8, 1.0, 1.2]:
-    #             for anp_steps in [1, 5, 10]:
-    #                 for anp_alpha in [0.2, 0.4, 0.6]:
-    #                     for round in [5, 10, 25]:
+    for _ in range(1):
+        for mask_lr in [0.01, 0.1]:
+            for anp_eps in [0.6, 0.8, 1.0, 1.2]:
+                for anp_steps in [1, 5, 10]:
+                    for anp_alpha in [0.2, 0.4, 0.6]:
+                        for round in [5, 10, 25]:
     # |settings: 0.1, 1.0, 1, 0.2, 10 |
-    for _ in range(10):
-        for mask_lr in [0.2]:
-            for anp_eps in [0.4]:
-                for anp_steps in [1]:
-                    for anp_alpha in [0.2]:
-                        for round in [5]:
+    # for _ in range(10):
+    #     for mask_lr in [0.2]:
+    #         for anp_eps in [0.4]:
+    #             for anp_steps in [1]:
+    #                 for anp_alpha in [0.2]:
+    #                     for round in [5]:
                             local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                             print('-' * 64)
                             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
