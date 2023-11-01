@@ -388,17 +388,16 @@ if __name__ == '__main__':
     mask_lr, anp_eps, anp_steps, anp_alpha, round = 0.01, 0.4, 1, 0.2, 10
     cos_matrix = {}
     for rnd in tqdm(range(1, 2)):
-        print("--------round {} ------------".format(rnd))
         rnd_global_params = parameters_to_vector([ copy.deepcopy(global_model.state_dict()[name]) for name in global_model.state_dict()])
         agent_updates_dict = {}
         chosen = np.random.choice(args.num_agents, math.floor(args.num_agents * args.agent_frac), replace=False)
 
         chosen = [0, 1, 20, 23]
         for agent_id in chosen:
+            print('-' * 64)
             global_model = global_model.to(args.device)
             local_model, mask_values =  train_mask(agent_id, global_model, criterion, agents[agent_id].train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
             id2mask_values[agent_id] = torch.tensor([mask_values[i][-1] for i in range(len(mask_values))])
-            print('-' * 64)
             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
             with torch.no_grad():
                 val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader,args, rnd, num_target)
