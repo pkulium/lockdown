@@ -359,7 +359,7 @@ if __name__ == '__main__':
     #             for anp_alpha in [0,1, 0.2, 1,0]:
     #                 for round in [5, 25, 50]:
     for _ in range(10):
-        for mask_lr in [0.01]:
+        for mask_lr in [0.1]:
             for anp_eps in [1.0]:
                 for anp_steps in [1]:
                     for anp_alpha in [0.2]:
