@@ -354,8 +354,8 @@ if __name__ == '__main__':
     best_val_acc = 0
     best_asr = 1
     for _ in range(1):
-        for mask_lr in [0.01, 0.1, 0.2]:
-            for anp_eps in [0.2, 0.4, 0.6]:
+        for mask_lr in [0.1]:
+            for anp_eps in [0.6, 0.8, 1.0, 1.2]:
                 for anp_steps in [1, 5, 10]:
                     for anp_alpha in [0.2, 0.4, 0.6]:
                         for round in [1, 5, 10]:
@@ -370,29 +370,14 @@ if __name__ == '__main__':
                             print('-' * 64)
                             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
                             with torch.no_grad():
-                                val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader,
-                                                                                    args, rnd, num_target)
-                                # logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-                                # logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+                                val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader, args, rnd, num_target)
                                 print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-                                # print(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
                                 acc_vec.append(val_acc)
                                 per_class_vec.append(val_per_class_acc)
-
-                                poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion,
-                                                                                                poisoned_val_loader, args, rnd, num_target)
+                                poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion, poisoned_val_loader, args, rnd, num_target)
                                 cum_poison_acc_mean += asr
                                 asr_vec.append(asr)
-                                # logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
                                 print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-
-                                poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion,
-                                                                                                    poisoned_val_only_x_loader, args,
-                                                                                                    rnd, num_target)
-                                pacc_vec.append(poison_acc)
-                                # logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
-                                # print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
-
                                 if val_acc > best_val_acc:
                                     best_val_acc = val_acc
                                     best_val_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
@@ -403,60 +388,24 @@ if __name__ == '__main__':
     print(f'{best_asr}, {best_asr_}')
 
     for rnd in tqdm(range(1, 1)):
-        logging.info("--------round {} ------------".format(rnd))
         print("--------round {} ------------".format(rnd))
-        # mask = torch.ones(n_model_params)
         rnd_global_params = parameters_to_vector([ copy.deepcopy(global_model.state_dict()[name]) for name in global_model.state_dict()])
-
-        # agent_updates_dict_prev = copy.deepcopy(agent_updates_dict)
         agent_updates_dict = {}
         chosen = np.random.choice(args.num_agents, math.floor(args.num_agents * args.agent_frac), replace=False)
-        if args.method == "lockdown" or args.method == "fedimp":
-            old_mask = [copy.deepcopy(agent.mask) for agent in agents]
         for agent_id in chosen:
-            # logging.info(torch.sum(rnd_global_params))
             global_model = global_model.to(args.device)
-            if args.method == "lockdown" or args.method == "fedimp":
-                update = agents[agent_id].local_train(global_model, criterion, rnd, global_mask=global_mask, neurotoxin_mask = neurotoxin_mask, updates_dict=updates_dict)
-            else:
-                update = agents[agent_id].local_train(global_model, criterion, rnd, neurotoxin_mask=neurotoxin_mask)
-            agent_updates_dict[agent_id] = update
-            utils.vector_to_model(copy.deepcopy(rnd_global_params), global_model)
+            update = agents[agent_id].local_train(global_model, criterion, rnd, neurotoxin_mask=neurotoxin_mask)
+            local_model, mask_values =  train_mask(agent_id, global_model, criterion, agents[agent_id].train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
+            print('-' * 64)
+            print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
+            with torch.no_grad():
+                val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader,args, rnd, num_target)
+                print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                acc_vec.append(val_acc)
+                per_class_vec.append(val_per_class_acc)
+                poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion, poisoned_val_loader, args, rnd, num_target)
+                cum_poison_acc_mean += asr
+                asr_vec.append(asr)
+                print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
 
-        # aggregate params obtained by agents and update the global params
-        if args.method == "lockdown" or args.method == "fedimp":
-            _, _, updates_dict,neurotoxin_mask = aggregator.aggregate_updates(global_model, agent_updates_dict, rnd, masks=old_mask,
-                                                   agent_updates_dict_prev=None,
-                                                   mask_aggrement=mask_aggrement)
-        else:
-            _, _, updates_dict,neurotoxin_mask = aggregator.aggregate_updates(global_model, agent_updates_dict, rnd,
-                                                   agent_updates_dict_prev=None,
-                                                   mask_aggrement=mask_aggrement)
-        # agent_updates_list.append(np.array(server_update.to("cpu")))
-        worker_id_list.append(agent_id + 1)
-
-
-
-        # inference in every args.snap rounds
-        if rnd % args.snap == 0:
-            val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,
-                                                                                  args, rnd, num_target)
-            # writer.add_scalar('Validation/Loss', val_loss, rnd)
-            # writer.add_scalar('Validation/Accuracy', val_acc, rnd)
-            logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-            logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
-            acc_vec.append(val_acc)
-            per_class_vec.append(val_per_class_acc)
-
-            poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
-                                                                            poisoned_val_loader, args, rnd, num_target)
-            cum_poison_acc_mean += asr
-            asr_vec.append(asr)
-            logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-
-            poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
-                                                                                   poisoned_val_only_x_loader, args,
-                                                                                   rnd, num_target)
-            pacc_vec.append(poison_acc)
-            logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
 
