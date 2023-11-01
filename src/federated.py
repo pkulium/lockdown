@@ -20,7 +20,7 @@ from optimize_mask_cifar import train_mask
 
 import logging
 
-SAVE_MODEL_NAME = 'AckRatio1_10_Methodfedavg_datacifar10_alpha1_Rnd175_Epoch2_inject0.01_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
+SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
 
 if __name__ == '__main__':
     torch.backends.cudnn.enabled = True
