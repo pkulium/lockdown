@@ -348,12 +348,12 @@ if __name__ == '__main__':
     #                 for anp_alpha in [0.2, 0.4, 0.6]:
     #                     for round in [5, 10, 25]:
     # |settings: 0.1, 1.0, 1, 0.2, 10 |
-    for repeate in range(5):
+    for _ in range(5):
         for mask_lr in [0.1]:
-            for anp_eps in [1.5]:
+            for anp_eps in [1.0]:
                 for anp_steps in [1]:
                     for anp_alpha in [0.2]:
-                        for round in [5]:
+                        for round in [10]:
                             local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                             print('-' * 64)
                             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
