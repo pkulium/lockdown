@@ -390,6 +390,15 @@ if __name__ == '__main__':
                             # logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
                             print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
 
+                            if val_acc > best_val_acc:
+                                best_val_acc = val_acc
+                                best_val_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+                            if poison_acc < best_poison_acc:
+                                best_poison_acc = poison_acc
+                                best_poison_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+    print(f'{best_val_acc}, {best_val_acc_}')
+    print(f'{best_poison_acc}, {best_poison_acc_}')
+
     for rnd in tqdm(range(1, 1)):
         logging.info("--------round {} ------------".format(rnd))
         print("--------round {} ------------".format(rnd))
