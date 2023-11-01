@@ -390,7 +390,7 @@ if __name__ == '__main__':
         agent_updates_dict = {}
         chosen = np.random.choice(args.num_agents, math.floor(args.num_agents * args.agent_frac), replace=False)
 
-        chosen = [0, 20]
+        # chosen = [0, 20]
         for agent_id in chosen:
             print('-' * 64)
             global_model = global_model.to(args.device)
