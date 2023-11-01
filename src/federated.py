@@ -329,7 +329,7 @@ if __name__ == '__main__':
         asr_vec.append(asr)
         print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
 
-    args.val_frac = 0.1
+    args.val_frac = 0.01
     args.clean_label = -1
     args.print_every = 500
     args.batch_size = 128
