@@ -385,7 +385,7 @@ if __name__ == '__main__':
     print(f'{best_val_acc}, {best_val_acc_}')
     print(f'{best_asr}, {best_asr_}')
 
-    mask_lr, anp_eps, anp_steps, anp_alpha, round = 0.1, 1.0, 1, 0.2, 10
+    mask_lr, anp_eps, anp_steps, anp_alpha, round = 0.1, 0.4, 1, 0.2, 10
 
     for rnd in tqdm(range(1, 2)):
         print("--------round {} ------------".format(rnd))
@@ -408,5 +408,4 @@ if __name__ == '__main__':
                 cum_poison_acc_mean += asr
                 asr_vec.append(asr)
                 print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-
 
