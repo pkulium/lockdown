@@ -358,44 +358,45 @@ if __name__ == '__main__':
     #         for anp_steps in [1, 5, 10]:
     #             for anp_alpha in [0,1, 0.2, 1,0]:
     #                 for round in [5, 25, 50]:
-    for mask_lr in [0.2]:
-        for anp_eps in [1.0]:
-            for anp_steps in [5]:
-                for anp_alpha in [0.2]:
-                    for round in [5]:
-                        local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
-                        print('-' * 64)
-                        print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
-                        with torch.no_grad():
-                            val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader,
-                                                                                  args, rnd, num_target)
-                            # logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-                            # logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
-                            print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-                            # print(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
-                            acc_vec.append(val_acc)
-                            per_class_vec.append(val_per_class_acc)
+    for _ in range(10):
+        for mask_lr in [0.2]:
+            for anp_eps in [1.0]:
+                for anp_steps in [5]:
+                    for anp_alpha in [0.2]:
+                        for round in [5]:
+                            local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
+                            print('-' * 64)
+                            print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
+                            with torch.no_grad():
+                                val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader,
+                                                                                    args, rnd, num_target)
+                                # logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                                # logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+                                print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                                # print(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+                                acc_vec.append(val_acc)
+                                per_class_vec.append(val_per_class_acc)
 
-                            poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion,
-                                                                                            poisoned_val_loader, args, rnd, num_target)
-                            cum_poison_acc_mean += asr
-                            asr_vec.append(asr)
-                            # logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-                            print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+                                poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion,
+                                                                                                poisoned_val_loader, args, rnd, num_target)
+                                cum_poison_acc_mean += asr
+                                asr_vec.append(asr)
+                                # logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+                                print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
 
-                            poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion,
-                                                                                                poisoned_val_only_x_loader, args,
-                                                                                                rnd, num_target)
-                            pacc_vec.append(poison_acc)
-                            # logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
-                            # print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
+                                poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion,
+                                                                                                    poisoned_val_only_x_loader, args,
+                                                                                                    rnd, num_target)
+                                pacc_vec.append(poison_acc)
+                                # logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
+                                # print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
 
-                            if val_acc > best_val_acc:
-                                best_val_acc = val_acc
-                                best_val_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
-                            if asr < best_asr:
-                                best_asr = asr
-                                best_asr_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+                                if val_acc > best_val_acc:
+                                    best_val_acc = val_acc
+                                    best_val_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+                                if asr < best_asr:
+                                    best_asr = asr
+                                    best_asr_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
     print(f'{best_val_acc}, {best_val_acc_}')
     print(f'{best_asr}, {best_asr_}')
 
