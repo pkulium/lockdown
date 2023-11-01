@@ -349,6 +349,7 @@ if __name__ == '__main__':
     #                 for anp_alpha in [0.2, 0.4, 0.6]:
     #                     for round in [5, 10, 25]:
     # |settings: 0.1, 1.0, 1, 0.2, 10 |
+    id2mask_values = {}
     for _ in range(1):
         for mask_lr in [0.1]:
             for anp_eps in [1.0]:
@@ -356,6 +357,7 @@ if __name__ == '__main__':
                     for anp_alpha in [0.2]:
                         for round in [10]:
                             local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
+                            id2mask_values[-1] = mask_values
                             # print('-' * 64)
                             # print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
                             # nb_max, nb_step = len(mask_values), 100
@@ -383,15 +385,18 @@ if __name__ == '__main__':
     print(f'{best_val_acc}, {best_val_acc_}')
     print(f'{best_asr}, {best_asr_}')
 
-    for rnd in tqdm(range(1, 1)):
+    mask_lr, anp_eps, anp_steps, anp_alpha, round = 0.1, 1.0, 1, 0.2, 10
+
+    for rnd in tqdm(range(1, 2)):
         print("--------round {} ------------".format(rnd))
         rnd_global_params = parameters_to_vector([ copy.deepcopy(global_model.state_dict()[name]) for name in global_model.state_dict()])
         agent_updates_dict = {}
         chosen = np.random.choice(args.num_agents, math.floor(args.num_agents * args.agent_frac), replace=False)
+
         for agent_id in chosen:
             global_model = global_model.to(args.device)
-            update = agents[agent_id].local_train(global_model, criterion, rnd, neurotoxin_mask=neurotoxin_mask)
             local_model, mask_values =  train_mask(agent_id, global_model, criterion, agents[agent_id].train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
+            id2mask_values[agent_id] = mask_values
             print('-' * 64)
             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
             with torch.no_grad():
