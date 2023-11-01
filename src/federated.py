@@ -372,7 +372,7 @@ if __name__ == '__main__':
                             # logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
                             # logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
                             print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-                            print(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+                            # print(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
                             acc_vec.append(val_acc)
                             per_class_vec.append(val_per_class_acc)
 
