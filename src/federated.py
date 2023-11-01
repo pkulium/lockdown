@@ -352,13 +352,13 @@ if __name__ == '__main__':
     server_train_loader = DataLoader(clean_val, batch_size=args.batch_size,
                             shuffle=False, sampler=random_sampler, num_workers=0)
     best_val_acc = 0
-    best_poison_acc = 1
+    best_asr = 1
     # for mask_lr in [0.01, 0.1, 0.2]:
     #     for anp_eps in [0, 0.4, 1.0]:
     #         for anp_steps in [1]:
     #             for anp_alpha in [0.2]:
     #                 for round in [5, 25]:
-    for mask_lr in [0.01, 0.1]:
+    for mask_lr in [0.1]:
         for anp_eps in [0.4]:
             for anp_steps in [1]:
                 for anp_alpha in [0.2]:
@@ -388,16 +388,16 @@ if __name__ == '__main__':
                                                                                                 rnd, num_target)
                             pacc_vec.append(poison_acc)
                             # logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
-                            print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
+                            # print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
 
                             if val_acc > best_val_acc:
                                 best_val_acc = val_acc
                                 best_val_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
-                            if poison_acc < best_poison_acc:
-                                best_poison_acc = poison_acc
-                                best_poison_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+                            if asr < best_asr:
+                                best_asr = asr
+                                best_asr_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
     print(f'{best_val_acc}, {best_val_acc_}')
-    print(f'{best_poison_acc}, {best_poison_acc_}')
+    print(f'{best_asr}, {best_asr_}')
 
     for rnd in tqdm(range(1, 1)):
         logging.info("--------round {} ------------".format(rnd))
