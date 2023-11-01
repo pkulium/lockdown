@@ -392,7 +392,7 @@ if __name__ == '__main__':
         agent_updates_dict = {}
         chosen = np.random.choice(args.num_agents, math.floor(args.num_agents * args.agent_frac), replace=False)
 
-        chosen = [0, 1, 20, 23]
+        chosen = [0, 20]
         for agent_id in chosen:
             print('-' * 64)
             global_model = global_model.to(args.device)
@@ -411,6 +411,7 @@ if __name__ == '__main__':
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         for agent_id in chosen:
+            print(id2mask_values[agent_id])
             cos_matrix[agent_id] = cos(id2mask_values[agent_id], id2mask_values[-1])
         print(cos_matrix)
             
