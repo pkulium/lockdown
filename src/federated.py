@@ -393,6 +393,7 @@ if __name__ == '__main__':
         agent_updates_dict = {}
         chosen = np.random.choice(args.num_agents, math.floor(args.num_agents * args.agent_frac), replace=False)
 
+        chosen = [0, 1, 20, 23]
         for agent_id in chosen:
             global_model = global_model.to(args.device)
             local_model, mask_values =  train_mask(agent_id, global_model, criterion, agents[agent_id].train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
