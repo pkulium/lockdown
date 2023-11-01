@@ -318,28 +318,16 @@ if __name__ == '__main__':
         exit()
 
     with torch.no_grad():
-        val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,
-                                                                args, rnd, num_target)
-        # logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-        # logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
+        val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,args, rnd, num_target)
         print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
         print(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
         acc_vec.append(val_acc)
         per_class_vec.append(val_per_class_acc)
 
-        poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
-                                                                        poisoned_val_loader, args, rnd, num_target)
+        poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,poisoned_val_loader, args, rnd, num_target)
         cum_poison_acc_mean += asr
         asr_vec.append(asr)
-        # logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
         print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-
-        poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
-                                                                            poisoned_val_only_x_loader, args,
-                                                                            rnd, num_target)
-        pacc_vec.append(poison_acc)
-        # logging.info(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
-        print(f'| Poison Loss/Poison accuracy: {poison_loss:.3f} / {poison_acc:.3f} |')
 
     args.val_frac = 0.1
     args.clean_label = -1
