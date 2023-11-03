@@ -372,17 +372,10 @@ if __name__ == '__main__':
         args.val_loader = val_loader
         args.poisoned_val_loader = poisoned_val_loader
         global_model = global_train(args, global_model, criterion, args.rounds)
-        torch.save({
-                    'option': args,
-                    'model_state_dict': global_model.state_dict(),
-                    'acc_vec': acc_vec,
-                    "asr_vec": asr_vec,
-                    'pacc_vec ': pacc_vec,
-                    "per_class_vec": per_class_vec,
-                    'neurotoxin_mask': neurotoxin_mask
-                }, PATH)
+        PATH = "checkpoint/combined_train.pt"
+        torch.save({'model_state_dict': global_model.state_dict()}, PATH)
        
-    
+
     args.val_frac = 0.01
     args.clean_label = -1
     args.print_every = 500
