@@ -359,7 +359,6 @@ if __name__ == '__main__':
         exit()
     else:
         combined_dataset = ConcatDataset([agents[agent_id] for agent_id in range(args.num_agents)])
-
         # Create a single DataLoader
         args.combined_train_loader = DataLoader(
             combined_dataset,
@@ -371,9 +370,10 @@ if __name__ == '__main__':
         )   
         args.val_loader = val_loader
         args.poisoned_val_loader = poisoned_val_loader
-        global_model = global_train(args, global_model, criterion, args.rounds)
+        global_model = global_train(args, global_model, criterion, round=200)
         PATH = "checkpoint/combined_train.pt"
         torch.save({'model_state_dict': global_model.state_dict()}, PATH)
+        exit()
        
 
     args.val_frac = 0.01
