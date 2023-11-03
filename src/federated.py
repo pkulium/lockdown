@@ -18,11 +18,50 @@ import poison_cifar as poison
 from torch.utils.data import DataLoader, RandomSampler
 from optimize_mask_cifar import train_mask
 from prune_neuron_cifar import pruning
-
+import time
 import logging
+from torch.utils.data import DataLoader, ConcatDataset
 
 SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
 
+
+def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None):
+    """ Do a local training over the received global model, return the update """
+    global_model.train()
+    optimizer = torch.optim.SGD(global_model.parameters(), lr=args.client_lr, weight_decay=args.wd)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=args.lr_decay)
+    running_loss = 0.0
+    # criterion = nn.CrossEntropyLoss()
+    # optimizer = torch.optim.SGD(global_model.parameters(), lr=args.lr,momentum=0.9, weight_decay=5e-4)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
+    for round_index in tqdm(range(round)):
+        for _, (inputs, labels) in enumerate(args.combined_train_loader):
+            optimizer.zero_grad()
+            inputs, labels = inputs.to(device=args.device, non_blocking=True), \
+                                labels.to(device=args.device, non_blocking=True)
+            outputs = global_model(inputs)
+            minibatch_loss = criterion(outputs, labels)
+            minibatch_loss.backward()
+            optimizer.step()
+            running_loss += minibatch_loss.item()
+
+        # At the end of the epoch, compute and print the average loss
+        average_loss = running_loss / len(args.combined_train_loader)
+        print(f'Epoch {round_index+1}, Average Loss: {average_loss:.4f}')
+        scheduler.step()
+        if round_index % 10 == 0:
+            with torch.no_grad():
+                val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,args, rnd, num_target)
+                print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                acc_vec.append(val_acc)
+                per_class_vec.append(val_per_class_acc)
+
+                poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,poisoned_val_loader, args, rnd, num_target)
+                cum_poison_acc_mean += asr
+                asr_vec.append(asr)
+                print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+    return global_model
+    
 if __name__ == '__main__':
     torch.backends.cudnn.enabled = True
     torch.backends.cudnn.benchmark = False
@@ -315,20 +354,35 @@ if __name__ == '__main__':
     # logging.info(mask_aggrement)
     rnd = 0
     logging.info('Training has finished!')
+
     if args.rounds != 0:
         exit()
+    else:
+        combined_dataset = ConcatDataset([agents[agent_id] for agent_id in range(args.num_agents)])
 
-    with torch.no_grad():
-        val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,args, rnd, num_target)
-        print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-        acc_vec.append(val_acc)
-        per_class_vec.append(val_per_class_acc)
-
-        poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,poisoned_val_loader, args, rnd, num_target)
-        cum_poison_acc_mean += asr
-        asr_vec.append(asr)
-        print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-
+        # Create a single DataLoader
+        args.combined_train_loader = DataLoader(
+            combined_dataset,
+            batch_size=args.bs,  # Make sure 'args.bs' is defined and accessible
+            shuffle=True,
+            num_workers=args.num_workers,  # Make sure 'args.num_workers' is defined and accessible
+            pin_memory=False,
+            drop_last=True
+        )   
+        args.val_loader = val_loader
+        args.poisoned_val_loader = poisoned_val_loader
+        global_model = global_train(args, global_model, criterion, args.rounds)
+        torch.save({
+                    'option': args,
+                    'model_state_dict': global_model.state_dict(),
+                    'acc_vec': acc_vec,
+                    "asr_vec": asr_vec,
+                    'pacc_vec ': pacc_vec,
+                    "per_class_vec": per_class_vec,
+                    'neurotoxin_mask': neurotoxin_mask
+                }, PATH)
+       
+    
     args.val_frac = 0.01
     args.clean_label = -1
     args.print_every = 500
