@@ -404,6 +404,7 @@ if __name__ == '__main__':
     best_asr = 1
     id2mask_values = {}
     pruning_max, pruning_step = 0.95, 0.05
+    best_diff, best_diff_ = 0, 0
     for _ in range(1):
         for mask_lr in [0.01, 0.1]:
             for anp_eps in [0.4, 0.8]:
@@ -446,16 +447,21 @@ if __name__ == '__main__':
                                     cum_poison_acc_mean += asr
                                     asr_vec.append(asr)
                                     print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-                                    if val_acc > best_val_acc:
+                                    # if val_acc > best_val_acc:
+                                    #     best_val_acc = val_acc
+                                    #     best_val_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+                                    # if asr < best_asr:
+                                    #     best_asr = asr
+                                    #     best_asr_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+                                    if val_acc - asr > best_diff:
                                         best_val_acc = val_acc
-                                        best_val_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
-                                    if asr < best_asr:
                                         best_asr = asr
-                                        best_asr_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+                                        best_diff = val_acc - asr
+                                        best_diff_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
 
-        print(f'{best_val_acc}, {best_val_acc_}')
-        print(f'{best_asr}, {best_asr_}')
-
+        print(f'best_val_acc:{best_val_acc}')
+        print(f'best_asr:{best_asr}')
+        print(f'best_diff:{best_diff}, best_diff_:{best_diff_}')
 
 
 
