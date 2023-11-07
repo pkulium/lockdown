@@ -358,7 +358,7 @@ if __name__ == '__main__':
     if args.rounds > 0:
         exit()
     elif args.rounds < 0:
-        combined_dataset = ConcatDataset([agent[agent_id].train_loader.dataset for agent_id in range(args.num_agents) if agent_id == 20])
+        combined_dataset = ConcatDataset([agents[agent_id].train_loader.dataset for agent_id in range(args.num_agents) if agent_id == 20])
         # Create a single DataLoader
         args.combined_train_loader = DataLoader(
             combined_dataset,
