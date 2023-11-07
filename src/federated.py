@@ -50,7 +50,7 @@ def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None)
         average_loss = running_loss / len(args.combined_train_loader)
         print(f'Epoch {round_index+1}, Average Loss: {average_loss:.4f}')
         scheduler.step()
-        if round_index % 10:
+        if round_index % 10 == 0:
             with torch.no_grad():
                 val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,args, rnd, num_target)
                 print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
