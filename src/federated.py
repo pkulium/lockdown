@@ -436,7 +436,7 @@ if __name__ == '__main__':
     print(f'{best_asr}, {best_asr_}')
     mask_lr, anp_eps, anp_steps, anp_alpha, round = 0.1, 1.0, 1, 0.2, 10
     cos_matrix = {}
-    for rnd in tqdm(range(1, 2)):
+    for rnd in tqdm(range(1, 1)):
         rnd_global_params = parameters_to_vector([ copy.deepcopy(global_model.state_dict()[name]) for name in global_model.state_dict()])
         agent_updates_dict = {}
         chosen = np.random.choice(args.num_agents, math.floor(args.num_agents * args.agent_frac), replace=False)
