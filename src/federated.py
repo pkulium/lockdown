@@ -57,7 +57,6 @@ def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None)
                 per_class_vec.append(val_per_class_acc)
 
                 poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,poisoned_val_loader, args, rnd, num_target)
-                cum_poison_acc_mean += asr
                 asr_vec.append(asr)
                 print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
     return global_model
