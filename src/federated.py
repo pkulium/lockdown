@@ -378,8 +378,18 @@ if __name__ == '__main__':
         PATH = "checkpoint/combined_train.pt"
         torch.save({'model_state_dict': global_model.state_dict()}, PATH)
         exit()
-       
+    
 
+    with torch.no_grad():
+        val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader, args, rnd, num_target)
+        print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+        acc_vec.append(val_acc)
+        per_class_vec.append(val_per_class_acc)
+        poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion, poisoned_val_loader, args, rnd, num_target)
+        cum_poison_acc_mean += asr
+        asr_vec.append(asr)
+        print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+    
     args.val_frac = 0.01
     args.clean_label = -1
     args.print_every = 500
