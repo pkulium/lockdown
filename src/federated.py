@@ -431,18 +431,18 @@ if __name__ == '__main__':
                                 idx = start
                                 for idx in range(start, len(mask_values)):
                                     if float(mask_values[idx][2]) <= threshold:
-                                        pruning(local_model, mask_values[idx])
+                                        pruning(global_model, mask_values[idx])
                                         start += 1
                                     else:
                                         break
                                 layer_name, neuron_idx, value = mask_values[idx][0], mask_values[idx][1], mask_values[idx][2]
                                 print(f'layer_name:{layer_name}, neuron_idx:{neuron_idx}, value:{value}')
                                 with torch.no_grad():
-                                    val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader, args, rnd, num_target)
+                                    val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader, args, rnd, num_target)
                                     print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
                                     acc_vec.append(val_acc)
                                     per_class_vec.append(val_per_class_acc)
-                                    poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion, poisoned_val_loader, args, rnd, num_target)
+                                    poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion, poisoned_val_loader, args, rnd, num_target)
                                     cum_poison_acc_mean += asr
                                     asr_vec.append(asr)
                                     print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
