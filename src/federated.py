@@ -106,6 +106,7 @@ if __name__ == '__main__':
 
     # load dataset and user groups (i.e., user to data mapping)
     train_dataset, val_dataset = utils.get_datasets(args.data)
+    train_dataset_copy = copy.deepcopy(train_dataset)
     if args.data == "cifar100":
         num_target = 100
     elif args.data == "tinyimagenet":
@@ -361,7 +362,7 @@ if __name__ == '__main__':
         combined_dataset = ConcatDataset([agents[agent_id].train_loader.dataset for agent_id in range(args.num_agents) if agent_id == 20])
         # Create a single DataLoader
         args.combined_train_loader = DataLoader(
-            train_dataset,
+            train_dataset_copy,
             batch_size=args.bs,  # Make sure 'args.bs' is defined and accessible
             shuffle=True,
             num_workers=args.num_workers,  # Make sure 'args.num_workers' is defined and accessible
