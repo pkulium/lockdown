@@ -148,8 +148,8 @@ if __name__ == '__main__':
 
     # initialize a model, and the agents
     global_model = models.get_model(args.data).to(args.device)
-    # if args.rounds == 0:
-        # global_model.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
+    if args.rounds == 0:
+        global_model.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
     global_mask = {}
     neurotoxin_mask = {}
     updates_dict = {}
@@ -355,9 +355,9 @@ if __name__ == '__main__':
     rnd = 0
     logging.info('Training has finished!')
 
-    if args.rounds != 0:
+    if args.rounds > 0:
         exit()
-    else:
+    elif args.round < 0:
         combined_dataset = ConcatDataset([agents[agent_id].train_loader for agent_id in range(args.num_agents)])
         # Create a single DataLoader
         args.combined_train_loader = DataLoader(
