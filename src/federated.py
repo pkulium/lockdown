@@ -361,7 +361,7 @@ if __name__ == '__main__':
         combined_dataset = ConcatDataset([agents[agent_id].train_loader.dataset for agent_id in range(args.num_agents) if agent_id == 20])
         # Create a single DataLoader
         args.combined_train_loader = DataLoader(
-            combined_dataset,
+            train_dataset,
             batch_size=args.bs,  # Make sure 'args.bs' is defined and accessible
             shuffle=True,
             num_workers=args.num_workers,  # Make sure 'args.num_workers' is defined and accessible
