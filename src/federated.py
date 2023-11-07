@@ -416,7 +416,7 @@ if __name__ == '__main__':
         for mask_lr in [0.01]:
             for anp_eps in [1.0]:
                 for anp_steps in [1]:
-                    for anp_alpha in [0.6]:
+                    for anp_alpha in [0.4, 0.6, 0.8]:
                         for round in [5, 10, 15]:
                             local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                             id2mask_values[-1] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values)) if i > len(mask_values) //2]])
