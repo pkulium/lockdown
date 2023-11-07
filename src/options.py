@@ -78,7 +78,7 @@ def args_parser():
     parser.add_argument('--debug', action='store_true', default=False)
     parser.add_argument('--alpha',type=float, default=1)
     parser.add_argument('--attack',type=str, default="badnet")
-    parser.add_argument('--lr_decay',type=float, default= 1)
+    parser.add_argument('--lr_decay',type=float, default= 0.992)
     parser.add_argument('--mask_init', type=str, default="ERK")
     parser.add_argument('--dis_check_gradient', action='store_true', default=False)
     parser.add_argument('--wd', type=float, default= 1e-4)
