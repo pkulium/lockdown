@@ -44,11 +44,11 @@ def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None)
             minibatch_loss = criterion(outputs, labels)
             minibatch_loss.backward()
             optimizer.step()
-            # running_loss += minibatch_loss.item()
-            print(minibatch_loss)
+            running_loss += minibatch_loss.item()
+            # print(minibatch_loss)
         # At the end of the epoch, compute and print the average loss
-        # average_loss = running_loss / len(args.combined_train_loader)
-        # print(f'Epoch {round_index+1}, Average Loss: {average_loss:.4f}')
+        average_loss = running_loss / len(args.combined_train_loader)
+        print(f'Epoch {round_index+1}, Average Loss: {average_loss:.4f}')
         scheduler.step()
         if round_index % 10:
             with torch.no_grad():
