@@ -178,6 +178,7 @@ def train_mask(id, global_model, criterion, train_loader, mask_lr, anp_eps, anp_
         for epoch in range(round):
             train_loss, train_acc = mask_train(model=local_model, criterion=criterion, data_loader=train_loader,
                                         mask_opt=mask_optimizer, noise_opt=noise_optimizer)
+            print(f'train_loss:{train_loss}, train_acc:{train_acc}')
         mask_scores = get_mask_scores(local_model.state_dict())
         save_mask_scores(local_model.state_dict(), f'/work/LAS/wzhang-lab/mingl/code/backdoor/Defending-Against-Backdoors-with-Robust-Learning-Rate/save/mask_values{id}.txt')
         mask_values = read_data(f'/work/LAS/wzhang-lab/mingl/code/backdoor/Defending-Against-Backdoors-with-Robust-Learning-Rate/save/mask_values{id}.txt')
