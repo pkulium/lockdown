@@ -414,10 +414,10 @@ if __name__ == '__main__':
     # | Attack Loss/Attack Success Ratio: 3.751 / 0.034 |
     pruning_max, pruning_step = 0.95, 0.02
     for _ in range(1):
-        for mask_lr in [0.01]:
+        for mask_lr in [0.1]:
             for anp_eps in [1.0]:
                 for anp_steps in [1]:
-                    for anp_alpha in [0.6]:
+                    for anp_alpha in [0.2]:
                         for round in [10]:
                             local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                             id2mask_values[-1] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values)) if i > len(mask_values) //2]])
