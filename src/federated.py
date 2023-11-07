@@ -412,7 +412,7 @@ if __name__ == '__main__':
     # |settings: 0.01, 1.0, 1, 0.6, 10 |
     # | Val_Loss/Val_Acc: 1.027 / 0.638 |
     # | Attack Loss/Attack Success Ratio: 3.751 / 0.034 |
-    pruning_max, pruning_step = 0.95, 0.5
+    pruning_max, pruning_step = 0.95, 0.05
     for _ in range(1):
         for mask_lr in [0.01]:
             for anp_eps in [1.0]:
