@@ -423,6 +423,7 @@ if __name__ == '__main__':
                             id2mask_values[-1] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values)) if i > len(mask_values) //2]])
                             print('-' * 64)
                             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
+
                             results = []
                             thresholds = np.arange(0, pruning_max + pruning_step, pruning_step)
                             start = 0
@@ -435,6 +436,7 @@ if __name__ == '__main__':
                                     else:
                                         break
                                 layer_name, neuron_idx, value = mask_values[idx][0], mask_values[idx][1], mask_values[idx][2]
+                                print(f'layer_name:{layer_name}, neuron_idx:{neuron_idx}, value:{value}')
                                 with torch.no_grad():
                                     val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader, args, rnd, num_target)
                                     print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
@@ -450,6 +452,7 @@ if __name__ == '__main__':
                                     if asr < best_asr:
                                         best_asr = asr
                                         best_asr_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+
         print(f'{best_val_acc}, {best_val_acc_}')
         print(f'{best_asr}, {best_asr_}')
 
