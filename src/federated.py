@@ -417,8 +417,8 @@ if __name__ == '__main__':
     #                     for round in [5]:
                             local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                             id2mask_values[-1] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values)) if i > len(mask_values) //2]])
-                            # print('-' * 64)
-                            # print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
+                            print('-' * 64)
+                            print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
                             # nb_max, nb_step = len(mask_values), 100
                             # print(f'mask_values len:{len(mask_values)}')
                             # for start in range(0, nb_max + 1, nb_step):
