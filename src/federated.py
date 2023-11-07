@@ -29,7 +29,8 @@ def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None)
     """ Do a local training over the received global model, return the update """
     global_model.train()
     optimizer = torch.optim.SGD(global_model.parameters(), lr=args.client_lr, weight_decay=args.wd)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=args.lr_decay)
+    # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=args.lr_decay)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
     running_loss = 0.0
     # criterion = nn.CrossEntropyLoss()
     # optimizer = torch.optim.SGD(global_model.parameters(), lr=args.lr,momentum=0.9, weight_decay=5e-4)
