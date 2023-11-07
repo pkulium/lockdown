@@ -403,12 +403,12 @@ if __name__ == '__main__':
     best_val_acc = 0
     best_asr = 1
     id2mask_values = {}
-    for _ in range(1):
-        for mask_lr in [0.01, 0.1]:
-            for anp_eps in [0.4, 0.6, 0.8, 1.0]:
-                for anp_steps in [1, 5]:
-                    for anp_alpha in [0.2, 0.4, 0.6]:
-                        for round in [5, 10]:     
+    # for _ in range(1):
+        # for mask_lr in [0.01, 0.1]:
+            # for anp_eps in [0.4, 0.6, 0.8, 1.0]:
+                # for anp_steps in [1, 5]:
+                #     for anp_alpha in [0.2, 0.4, 0.6]:
+                #         for round in [5, 10]:     
     # |settings: 0.01, 1.0, 1, 0.6, 10 |
     # | Val_Loss/Val_Acc: 1.027 / 0.638 |
     # | Attack Loss/Attack Success Ratio: 3.751 / 0.034 |
