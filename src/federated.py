@@ -441,7 +441,7 @@ if __name__ == '__main__':
     best_val_acc = 0
     best_asr = 1
     id2mask_values = {}
-    pruning_max, pruning_step = 0.95, 0.05
+    pruning_max, pruning_step = 0.5, 0.05
     best_diff, best_diff_ = 0, 0
 
     # |settings: 0.01, 1.0, 1, 0.6, 10 |
