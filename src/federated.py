@@ -154,7 +154,7 @@ if __name__ == '__main__':
     global_model = models.get_model(args.data).to(args.device)
     if args.rounds == 0:
         # global_model.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
-        
+
         global_model_1 = copy.deepcopy(global_model)
         global_model_2 = copy.deepcopy(global_model)
         SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
@@ -174,8 +174,8 @@ if __name__ == '__main__':
 
         # Plot the distribution of weights for both vectors
         plt.figure(figsize=(10, 6))
-        plt.hist(weights_numpy_1, bins=bins, color='blue', alpha=0.7, label='Model 1')
-        plt.hist(weights_numpy_2, bins=bins, color='red', alpha=0.7, label='Model 2')
+        plt.hist(weights_numpy_1, bins=bins, color='blue', alpha=0.7, label='Model fl')
+        plt.hist(weights_numpy_2, bins=bins, color='red', alpha=0.7, label='Model central')
         plt.title('Distribution of Weights for Two Models')
         plt.xlabel('Weight Value')
         plt.ylabel('Frequency')
