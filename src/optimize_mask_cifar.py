@@ -185,7 +185,7 @@ def train_mask(id, global_model, criterion, train_loader, mask_lr, anp_eps, anp_
         mask_values = sorted(mask_values, key=lambda x: float(x[2]))
         print(f'mask_values:{mask_values[0]} - {mask_values[100]} - {mask_values[1000]}')
         # prune_by_threshold(global_model, mask_values, pruning_max=0.6, pruning_step=0.05)
-        return deepcopy(global_model), mask_values
+        return local_model, mask_values
 
 def load_state_dict(net, orig_state_dict):
     if 'state_dict' in orig_state_dict.keys():

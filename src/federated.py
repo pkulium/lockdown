@@ -428,11 +428,12 @@ if __name__ == '__main__':
                             results = []
                             thresholds = np.arange(0, pruning_max + pruning_step, pruning_step)
                             start = 0
+                            local_model = copy.deepcopy(global_model)
                             for threshold in thresholds:
                                 idx = start
                                 for idx in range(start, len(mask_values)):
                                     if float(mask_values[idx][2]) <= threshold:
-                                        pruning(global_model, mask_values[idx])
+                                        pruning(local_model, mask_values[idx])
                                         start += 1
                                     else:
                                         break
