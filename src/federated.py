@@ -153,6 +153,30 @@ if __name__ == '__main__':
     global_model = models.get_model(args.data).to(args.device)
     if args.rounds == 0:
         global_model.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
+        parameter_vector = parameters_to_vector(global_model.parameters()).detach()
+        import torch
+        import matplotlib.pyplot as plt
+        from torch.nn.utils import parameters_to_vector
+
+        # Assuming 'global_model' is your PyTorch model
+        parameter_vector = parameters_to_vector(global_model.parameters()).detach()
+
+        # Calculate the magnitudes (absolute values) of the parameters
+        magnitudes = parameter_vector.abs()
+
+        # Convert to a NumPy array for plotting
+        magnitudes_numpy = magnitudes.cpu().numpy()
+
+        # Plot the distribution of magnitudes
+        plt.figure(figsize=(10, 6))
+        plt.hist(magnitudes_numpy, bins=50, color='blue', alpha=0.7)
+        plt.title('Distribution of Parameter Magnitudes')
+        plt.xlabel('Magnitude')
+        plt.ylabel('Frequency')
+        plt.grid(True)
+        plt.show()
+        exit()
+        
     global_mask = {}
     neurotoxin_mask = {}
     updates_dict = {}
@@ -378,8 +402,6 @@ if __name__ == '__main__':
         PATH = "checkpoint/combined_train.pt"
         torch.save({'model_state_dict': global_model.state_dict()}, PATH)
         exit()
-    
-
     with torch.no_grad():
         val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader, args, rnd, num_target)
         print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
