@@ -178,6 +178,8 @@ if __name__ == '__main__':
         # After saving, you can close the plot if it's not needed to be shown
         plt.close()
 
+        exit()
+
 
 
 
