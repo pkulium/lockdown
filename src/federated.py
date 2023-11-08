@@ -160,7 +160,7 @@ if __name__ == '__main__':
         parameter_vector = parameters_to_vector(global_model.parameters()).detach()
 
         # Calculate the magnitudes (absolute values) of the parameters
-        magnitudes = parameter_vector.abs()
+        magnitudes = parameter_vector
 
         # Convert to a NumPy array for plotting
         magnitudes_numpy = magnitudes.cpu().numpy()
