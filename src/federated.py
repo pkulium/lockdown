@@ -156,26 +156,34 @@ if __name__ == '__main__':
         global_model.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
         parameter_vector = parameters_to_vector(global_model.parameters()).detach()
 
-        # Assuming 'global_model' is your PyTorch model
-        parameter_vector = parameters_to_vector(global_model.parameters()).detach()
+        weights_numpy = parameter_vector.cpu().numpy()
 
-        # Calculate the magnitudes (absolute values) of the parameters
-        magnitudes = parameter_vector
+        # Define bin edges with more bins near zero
+        bins = [-1, -0.5, -0.1] + [i * 0.01 for i in range(-10, 11)] + [0.1, 0.5, 1]
 
-        # Convert to a NumPy array for plotting
-        magnitudes_numpy = magnitudes.cpu().numpy()
-
-        # Plot the distribution of magnitudes
+        # Plot the distribution of weights with variable bin sizes
         plt.figure(figsize=(10, 6))
-        plt.hist(magnitudes_numpy, bins=50, color='blue', alpha=0.7)
-        plt.title('Distribution of Parameter Magnitudes')
-        plt.xlabel('Magnitude')
+        plt.hist(weights_numpy, bins=bins, color='blue', alpha=0.7)
+        plt.title('Distribution of Weights with Fine-Grained Bins Near Zero')
+        plt.xlabel('Weight Value')
         plt.ylabel('Frequency')
         plt.grid(True)
-        # plt.savefig('parameter_magnitudes_distribution_fl.png', bbox_inches='tight')
-        plt.savefig('parameter_magnitudes_distribution_central.png', bbox_inches='tight')
+
+        # Save the figure
+        plt.savefig('weights_distribution_finegrain.png', bbox_inches='tight')
+
+        # If you want to display it as well, uncomment the next line
         # plt.show()
-        exit()
+
+        # After saving, you can close the plot if it's not needed to be shown
+        plt.close()
+
+
+
+
+
+
+
         
     global_mask = {}
     neurotoxin_mask = {}
