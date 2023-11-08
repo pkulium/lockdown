@@ -417,6 +417,7 @@ if __name__ == '__main__':
         PATH = "checkpoint/combined_train.pt"
         torch.save({'model_state_dict': global_model.state_dict()}, PATH)
         exit()
+
     with torch.no_grad():
         val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader, args, rnd, num_target)
         print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
@@ -458,6 +459,7 @@ if __name__ == '__main__':
     #                 for anp_alpha in [0.2]:
     #                     for round in [25]:
                             local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
+                            local_model = copy.deepcopy(global_model)
                             id2mask_values[-1] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values)) if i > len(mask_values) //2]])
                             print('-' * 64)
                             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
@@ -465,7 +467,6 @@ if __name__ == '__main__':
                             results = []
                             thresholds = np.arange(0, pruning_max + pruning_step, pruning_step)
                             start = 0
-                            local_model = copy.deepcopy(global_model)
                             for threshold in thresholds:
                                 idx = start
                                 for idx in range(start, len(mask_values)):
