@@ -174,7 +174,7 @@ if __name__ == '__main__':
         plt.grid(True)
         plt.savefig('parameter_magnitudes_distribution_fl.png', bbox_inches='tight')
         # plt.savefig('parameter_magnitudes_distribution_central.png', bbox_inches='tight')
-        plt.show()
+        # plt.show()
         exit()
         
     global_mask = {}
