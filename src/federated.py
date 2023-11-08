@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
 # SAVE_MODEL_NAME = 'combined_train.pt'
-SAVE_MODEL_NAME = '/work/LAS/wzhang-lab/mingl/code/backdoor/ANP_backdoor/save/model_last.th'
+# SAVE_MODEL_NAME = '/work/LAS/wzhang-lab/mingl/code/backdoor/ANP_backdoor/save/model_last.th'
 
 
 
