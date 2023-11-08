@@ -24,7 +24,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 import matplotlib.pyplot as plt
 
 SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
-# SAVE_MODEL_NAME = 'combined_train.pt'
+SAVE_MODEL_NAME = 'combined_train.pt'
 
 
 
@@ -170,7 +170,7 @@ if __name__ == '__main__':
         plt.grid(True)
 
         # Save the figure
-        plt.savefig('weights_distribution_finegrain.png', bbox_inches='tight')
+        plt.savefig('weights_distribution_finegrain_central.png', bbox_inches='tight')
 
         # If you want to display it as well, uncomment the next line
         # plt.show()
