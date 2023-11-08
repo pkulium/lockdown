@@ -24,7 +24,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 import matplotlib.pyplot as plt
 
 SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
-# SAVE_MODEL_NAME = 'combined_train.pt'
+SAVE_MODEL_NAME = 'combined_train.pt'
 
 
 
@@ -172,8 +172,8 @@ if __name__ == '__main__':
         plt.xlabel('Magnitude')
         plt.ylabel('Frequency')
         plt.grid(True)
-        plt.savefig('parameter_magnitudes_distribution_fl.png', bbox_inches='tight')
-        # plt.savefig('parameter_magnitudes_distribution_central.png', bbox_inches='tight')
+        # plt.savefig('parameter_magnitudes_distribution_fl.png', bbox_inches='tight')
+        plt.savefig('parameter_magnitudes_distribution_central.png', bbox_inches='tight')
         # plt.show()
         exit()
         
