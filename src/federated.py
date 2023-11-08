@@ -21,6 +21,7 @@ from prune_neuron_cifar import pruning
 import time
 import logging
 from torch.utils.data import DataLoader, ConcatDataset
+import matplotlib.pyplot as plt
 
 SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
 # SAVE_MODEL_NAME = 'combined_train.pt'
@@ -154,9 +155,6 @@ if __name__ == '__main__':
     if args.rounds == 0:
         global_model.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
         parameter_vector = parameters_to_vector(global_model.parameters()).detach()
-        import torch
-        import matplotlib.pyplot as plt
-        from torch.nn.utils import parameters_to_vector
 
         # Assuming 'global_model' is your PyTorch model
         parameter_vector = parameters_to_vector(global_model.parameters()).detach()
