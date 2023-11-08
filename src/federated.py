@@ -24,7 +24,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 import matplotlib.pyplot as plt
 
 SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
-SAVE_MODEL_NAME = 'combined_train.pt'
+# SAVE_MODEL_NAME = 'combined_train.pt'
 
 
 
@@ -457,10 +457,10 @@ if __name__ == '__main__':
     # Best Configuration Central:  0.2, 0,4, 1, 0.2, 10 
     for _ in range(1):
         for mask_lr in [0.2]:
-            for anp_eps in [0.4]:
+            for anp_eps in [1.0]:
                 for anp_steps in [1]:
                     for anp_alpha in [0.2]:
-                        for round in [10]:
+                        for round in [8]:
                             local_model, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                             local_model = copy.deepcopy(global_model)
                             id2mask_values[-1] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values)) if i > len(mask_values) //2]])
