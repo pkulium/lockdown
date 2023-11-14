@@ -32,7 +32,7 @@ SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inje
 def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None):
     """ Do a local training over the received global model, return the update """
     global_model.train()
-    optimizer = torch.optim.SGD(global_model.parameters(), lr=0.01, weight_decay=args.wd, momentum=0.9)
+    optimizer = torch.optim.SGD(global_model.parameters(), lr=args.client_lr, weight_decay=args.wd, momentum=0.9)
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=args.lr_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
     running_loss = 0.0
@@ -492,6 +492,7 @@ if __name__ == '__main__':
                                     else:
                                         break
                                 args.combined_train_loader = server_train_loader
+                                args.client_lr = 0.001
                                 local_model = global_train(args, local_model, criterion, round=20)
                                 layer_name, neuron_idx, value = mask_values[idx][0], mask_values[idx][1], mask_values[idx][2]
                                 print(f'layer_name:{layer_name}, neuron_idx:{neuron_idx}, value:{value}')
