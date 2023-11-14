@@ -170,7 +170,6 @@ def train_mask(id, global_model, criterion, train_loader, mask_lr, anp_eps, anp_
 
         local_model.train()  
         parameters = list(local_model.named_parameters())
-        parameters = parameters[len(parameters) // 2:]
         mask_params = [v for n, v in parameters if "neuron_mask" in n]
         mask_optimizer = torch.optim.SGD(mask_params, lr=local_model.mask_lr, momentum=0.9)
         noise_params = [v for n, v in parameters if "neuron_noise" in n]
