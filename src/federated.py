@@ -32,7 +32,7 @@ SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inje
 def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None):
     """ Do a local training over the received global model, return the update """
     global_model.train()
-    optimizer = torch.optim.SGD(global_model.parameters(), lr=args.client_lr, weight_decay=args.wd, momentum=0.9)
+    optimizer = torch.optim.SGD(global_model.parameters(), lr=0.01, weight_decay=args.wd, momentum=0.9)
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=args.lr_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
     running_loss = 0.0
