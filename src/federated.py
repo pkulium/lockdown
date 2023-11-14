@@ -491,9 +491,6 @@ if __name__ == '__main__':
                                         start += 1
                                     else:
                                         break
-                                args.combined_train_loader = server_train_loader
-                                args.client_lr = 0.001
-                                local_model = global_train(args, local_model, criterion, round=20)
                                 layer_name, neuron_idx, value = mask_values[idx][0], mask_values[idx][1], mask_values[idx][2]
                                 print(f'layer_name:{layer_name}, neuron_idx:{neuron_idx}, value:{value}')
                                 with torch.no_grad():
@@ -516,6 +513,10 @@ if __name__ == '__main__':
                                         best_asr = asr
                                         best_diff = val_acc - asr
                                         best_diff_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+                                if asr < 0.1:
+                                     args.combined_train_loader = server_train_loader
+                                    args.client_lr = 0.01
+                                    local_model = global_train(args, local_model, criterion, round=20)
 
         print(f'best_val_acc:{best_val_acc}')
         print(f'best_asr:{best_asr}')
