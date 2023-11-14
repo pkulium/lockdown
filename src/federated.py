@@ -517,7 +517,7 @@ if __name__ == '__main__':
                                     print('finetune')
                                     args.combined_train_loader = server_train_loader
                                     args.client_lr = 0.01
-                                    local_model = global_train(args, local_model, criterion, round=20)
+                                    local_model = global_train(args, local_model, criterion, round=2)
 
         print(f'best_val_acc:{best_val_acc}')
         print(f'best_asr:{best_asr}')
