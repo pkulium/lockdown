@@ -67,7 +67,7 @@ class Agent():
                 minibatch_loss = criterion(outputs, labels)
 
                 param =  parameters_to_vector([global_model.state_dict()[name] for name in global_model.state_dict()]).detach()
-                fed_prox_reg += ((mu / 2) * torch.norm((param - initial_global_model_params))**2)
+                fed_prox_reg = ((mu / 2) * torch.norm((param - initial_global_model_params))**2)
                 minibatch_loss += fed_prox_reg
 
                 minibatch_loss.backward()
