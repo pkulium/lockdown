@@ -514,7 +514,8 @@ if __name__ == '__main__':
                                         best_diff = val_acc - asr
                                         best_diff_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
                                 if asr < 0.1:
-                                     args.combined_train_loader = server_train_loader
+                                    print('finetune')
+                                    args.combined_train_loader = server_train_loader
                                     args.client_lr = 0.01
                                     local_model = global_train(args, local_model, criterion, round=20)
 
