@@ -66,10 +66,10 @@ class Agent():
                                  labels.to(device=self.args.device, non_blocking=True)
                 outputs = global_model(inputs)
                 minibatch_loss = criterion(outputs, labels)
-
-                param =  parameters_to_vector([global_model.state_dict()[name] for name in global_model.state_dict()]).detach()
-                fed_prox_reg = ((mu / 2) * torch.norm((param - initial_global_model_params))**2)
-                minibatch_loss += fed_prox_reg
+                if mu:
+                    param =  parameters_to_vector([global_model.state_dict()[name] for name in global_model.state_dict()]).detach()
+                    fed_prox_reg = ((mu / 2) * torch.norm((param - initial_global_model_params))**2)
+                    minibatch_loss += fed_prox_reg
 
                 minibatch_loss.backward()
                 if self.args.attack == "neurotoxin" and len(neurotoxin_mask) and self.id < self.args.num_corrupt:
