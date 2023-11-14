@@ -56,6 +56,7 @@ class Agent():
         global_model.train()
         optimizer = torch.optim.SGD(global_model.parameters(), lr=self.args.client_lr * (self.args.lr_decay) ** round,
                                     weight_decay=self.args.wd)
+        mu = 0.001
         for _ in range(self.args.local_ep):
             start = time.time()
             for _, (inputs, labels) in enumerate(self.train_loader):
@@ -64,6 +65,11 @@ class Agent():
                                  labels.to(device=self.args.device, non_blocking=True)
                 outputs = global_model(inputs)
                 minibatch_loss = criterion(outputs, labels)
+
+                param =  parameters_to_vector([global_model.state_dict()[name] for name in global_model.state_dict()]).detach()
+                fed_prox_reg += ((mu / 2) * torch.norm((param - initial_global_model_params))**2)
+                minibatch_loss += fed_prox_reg
+
                 minibatch_loss.backward()
                 if self.args.attack == "neurotoxin" and len(neurotoxin_mask) and self.id < self.args.num_corrupt:
                     for name, param in global_model.named_parameters():
