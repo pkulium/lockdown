@@ -518,6 +518,7 @@ if __name__ == '__main__':
                                     args.combined_train_loader = server_train_loader
                                     args.client_lr = 0.01
                                     local_model = global_train(args, local_model, criterion, round=1)
+                                    pruning(local_model, mask_values[idx])
                                     with torch.no_grad():
                                         val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader, args, rnd, num_target)
                                         print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
