@@ -23,10 +23,10 @@ import logging
 from torch.utils.data import DataLoader, ConcatDataset
 import matplotlib.pyplot as plt
 
-# SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
+SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
 # SAVE_MODEL_NAME = 'combined_train.pt'
-SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd100_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox0.1.pt'
-SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox.pt'
+# SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd100_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox0.1.pt'
+# SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox.pt'
 
 
 
@@ -464,8 +464,20 @@ if __name__ == '__main__':
                     for anp_alpha in [0.2]:
                         for round in [10]:
                             _, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
+                            id2mask_values[-1] = torch.tensor([mask_values[i][-1] for i in range(len(mask_values))])
+                            numpy_array = id2mask_values[-1].numpy()
+                            plt.plot(numpy_array)
+                            plt.title("Distribution of mask")
+                            plt.xlabel("Index")
+                            plt.ylabel("Value")
+                            plt.savefig('mask_distribution_fl.png', bbox_inches='tight')
+                            # plt.show()
+                            plt.close()
+                            exit()
+
+                            mask_values = sorted(mask_values, key=lambda x: float(x[2]))
+                            print(f'mask_values:{mask_values[0]} - {mask_values[100]} - {mask_values[1000]}')
                             local_model = copy.deepcopy(global_model)
-                            id2mask_values[-1] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values)) if i > len(mask_values) //2]])
                             print('-' * 64)
                             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
 
