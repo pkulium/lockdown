@@ -157,42 +157,44 @@ if __name__ == '__main__':
     if args.rounds == 0:
         global_model.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
 
-        # global_model_1 = copy.deepcopy(global_model)
-        # global_model_2 = copy.deepcopy(global_model)
-        # SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
-        # global_model_1.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
-        # SAVE_MODEL_NAME = 'combined_train.pt'
-        # global_model_1.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
-        # # Assuming 'global_model_1' and 'global_model_2' are your PyTorch models
-        # parameter_vector_1 = parameters_to_vector(global_model_1.parameters()).detach()
-        # parameter_vector_2 = parameters_to_vector(global_model_2.parameters()).detach()
+        global_model_1 = copy.deepcopy(global_model)
+        global_model_2 = copy.deepcopy(global_model)
+        SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
+        SAVE_MODEL_NAME = 'AckRatio0_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox.pt'
+        global_model_1.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/no_lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
+        SAVE_MODEL_NAME = 'combined_train.pt'
+        SAVE_MODEL_NAME = 'combined_train_prox.pt'
+        global_model_2.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/no_lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
+        # Assuming 'global_model_1' and 'global_model_2' are your PyTorch models
+        parameter_vector_1 = parameters_to_vector(global_model_1.parameters()).detach()
+        parameter_vector_2 = parameters_to_vector(global_model_2.parameters()).detach()
 
-        # # Convert to NumPy arrays for plotting
-        # weights_numpy_1 = parameter_vector_1.cpu().numpy()
-        # weights_numpy_2 = parameter_vector_2.cpu().numpy()
+        # Convert to NumPy arrays for plotting
+        weights_numpy_1 = parameter_vector_1.cpu().numpy()
+        weights_numpy_2 = parameter_vector_2.cpu().numpy()
 
-        # # Define bin edges with more bins near zero
-        # bins = [-1, -0.5, -0.1] + [i * 0.01 for i in range(-10, 11)] + [0.1, 0.5, 1]
+        # Define bin edges with more bins near zero
+        bins = [-1, -0.5, -0.1] + [i * 0.01 for i in range(-10, 11)] + [0.1, 0.5, 1]
 
-        # # Plot the distribution of weights for both vectors
-        # plt.figure(figsize=(10, 6))
-        # plt.hist(weights_numpy_1, bins=bins, color='blue', alpha=0.7, label='Model fl')
-        # plt.hist(weights_numpy_2, bins=bins, color='red', alpha=0.7, label='Model central')
-        # plt.title('Distribution of Weights for Two Models')
-        # plt.xlabel('Weight Value')
-        # plt.ylabel('Frequency')
-        # plt.legend(loc='upper right')
-        # plt.grid(True)
+        # Plot the distribution of weights for both vectors
+        plt.figure(figsize=(10, 6))
+        plt.hist(weights_numpy_1, bins=bins, color='blue', alpha=0.7, label='Model fl')
+        plt.hist(weights_numpy_2, bins=bins, color='red', alpha=0.7, label='Model central')
+        plt.title('Distribution of Weights for Two Models')
+        plt.xlabel('Weight Value')
+        plt.ylabel('Frequency')
+        plt.legend(loc='upper right')
+        plt.grid(True)
 
-        # # Save the figure
-        # plt.savefig('comparison_weights_distribution.png', bbox_inches='tight')
+        # Save the figure
+        plt.savefig('comparison_weights_distribution_clean.png', bbox_inches='tight')
 
-        # # If you want to display it as well, uncomment the next line
-        # # plt.show()
+        # If you want to display it as well, uncomment the next line
+        # plt.show()
 
-        # # After saving, you can close the plot if it's not needed to be shown
-        # plt.close()
-        # exit()
+        # After saving, you can close the plot if it's not needed to be shown
+        plt.close()
+        exit()
 
     global_mask = {}
     neurotoxin_mask = {}
