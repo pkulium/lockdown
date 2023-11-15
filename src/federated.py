@@ -365,7 +365,7 @@ if __name__ == '__main__':
                     args.poison_frac, args.dense_ratio, args.aggr, args.se_threshold, args.non_iid,
                     args.theta, args.attack)
             else:
-                PATH = "checkpoint/AckRatio{}_{}_Method{}_data{}_alpha{}_Rnd{}_Epoch{}_inject{}_dense{}_Agg{}_se_threshold{}_noniid{}_maskthreshold{}_attack{}_prox.pt".format(
+                PATH = "checkpoint/AckRatio{}_{}_Method{}_data{}_alpha{}_Rnd{}_Epoch{}_inject{}_dense{}_Agg{}_se_threshold{}_noniid{}_maskthreshold{}_attack{}_prox0.01.pt".format(
                     args.num_corrupt, args.num_agents, args.method, args.data, args.alpha, rnd, args.local_ep,
                     args.poison_frac, args.dense_ratio, args.aggr, args.se_threshold, args.non_iid,
                     args.theta, args.attack)
