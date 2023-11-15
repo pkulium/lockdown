@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 # SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
 # SAVE_MODEL_NAME = 'combined_train.pt'
-SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd100_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox0.01.pt'
+SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd100_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox0.1.pt'
 SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox.pt'
 
 
@@ -366,7 +366,7 @@ if __name__ == '__main__':
                     args.poison_frac, args.dense_ratio, args.aggr, args.se_threshold, args.non_iid,
                     args.theta, args.attack)
             else:
-                PATH = "checkpoint/AckRatio{}_{}_Method{}_data{}_alpha{}_Rnd{}_Epoch{}_inject{}_dense{}_Agg{}_se_threshold{}_noniid{}_maskthreshold{}_attack{}_prox0.01.pt".format(
+                PATH = "checkpoint/AckRatio{}_{}_Method{}_data{}_alpha{}_Rnd{}_Epoch{}_inject{}_dense{}_Agg{}_se_threshold{}_noniid{}_maskthreshold{}_attack{}_prox0.1.pt".format(
                     args.num_corrupt, args.num_agents, args.method, args.data, args.alpha, rnd, args.local_ep,
                     args.poison_frac, args.dense_ratio, args.aggr, args.se_threshold, args.non_iid,
                     args.theta, args.attack)
