@@ -56,7 +56,7 @@ class Agent():
         global_model.train()
         optimizer = torch.optim.SGD(global_model.parameters(), lr=self.args.client_lr * (self.args.lr_decay) ** round,
                                     weight_decay=self.args.wd)
-        mu = 0.01
+        mu = 0.1
         for _ in range(self.args.local_ep):
             start = time.time()
             for _, (inputs, labels) in enumerate(self.train_loader):
