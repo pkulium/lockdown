@@ -526,7 +526,7 @@ if __name__ == '__main__':
                                         best_asr = asr
                                         best_diff = val_acc - asr
                                         best_diff_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
-                                if True:
+                                if False:
                                     print('finetune')
                                     args.combined_train_loader = server_train_loader
                                     args.client_lr = 0.001
