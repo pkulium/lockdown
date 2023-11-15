@@ -415,7 +415,7 @@ if __name__ == '__main__':
         args.val_loader = val_loader
         args.poisoned_val_loader = poisoned_val_loader
         global_model = global_train(args, global_model, criterion, round=200)
-        PATH = "checkpoint/combined_train.pt"
+        PATH = "checkpoint/combined_train_prox.pt"
         torch.save({'model_state_dict': global_model.state_dict()}, PATH)
         exit()
 
