@@ -518,6 +518,16 @@ if __name__ == '__main__':
                                     args.combined_train_loader = server_train_loader
                                     args.client_lr = 0.01
                                     local_model = global_train(args, local_model, criterion, round=1)
+                                    with torch.no_grad():
+                                        val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader, args, rnd, num_target)
+                                        print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                                        acc_vec.append(val_acc)
+                                        per_class_vec.append(val_per_class_acc)
+                                        poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion, poisoned_val_loader, args, rnd, num_target)
+                                        cum_poison_acc_mean += asr
+                                        asr_vec.append(asr)
+                                        print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+                                    print('finetune done')
 
         print(f'best_val_acc:{best_val_acc}')
         print(f'best_asr:{best_asr}')
