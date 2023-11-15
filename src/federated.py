@@ -462,7 +462,7 @@ if __name__ == '__main__':
             for anp_eps in [1.0]:
                 for anp_steps in [1]:
                     for anp_alpha in [0.2]:
-                        for round in [20]:
+                        for round in [10]:
                             _, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                             local_model = copy.deepcopy(global_model)
                             id2mask_values[-1] = torch.tensor([[mask_values[i][-1] for i in range(len(mask_values)) if i > len(mask_values) //2]])
@@ -514,7 +514,7 @@ if __name__ == '__main__':
                                         best_asr = asr
                                         best_diff = val_acc - asr
                                         best_diff_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
-                                if val_acc < 0.6:
+                                if False:
                                     print('finetune')
                                     args.combined_train_loader = server_train_loader
                                     args.client_lr = 0.001
