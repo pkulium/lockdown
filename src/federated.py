@@ -65,6 +65,7 @@ def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None)
                 poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,poisoned_val_loader, args, rnd, num_target)
                 asr_vec.append(asr)
                 print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+    global_model.eval()
     return global_model
     
 if __name__ == '__main__':
@@ -474,7 +475,6 @@ if __name__ == '__main__':
                             # # plt.show()
                             # plt.close()
                             # exit()
-                            mask_values = mask_values[:-500]
                             mask_values = sorted(mask_values, key=lambda x: float(x[2]))
                             print(f'mask_values:{mask_values[0]} - {mask_values[100]} - {mask_values[1000]}')
                             local_model = copy.deepcopy(global_model)
