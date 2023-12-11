@@ -1,61 +1,57 @@
+## PP-06.02: String-frequency
 
+**Adapt your previous program from PP-05.03: Duplicates, to instead print out a
+horizontal [Histogram](https://en.wikipedia.org/wiki/Histogram) of the frequency distribution of A-Z letters.**
+Stack the `'#'` symbol for each percentage point for a letter (e.g. if `'A'` appears 5% of the time the histogram should display `"#####"` for that bucket), and
+after each stack of `'#'` print the percentage for that letter.
 
-# Lockdown: Backdoor Defense for Federated Learning with Isolated Subspace Training
-This is the repo for the code and datasets used in the paper [Lockdown: Backdoor Defense for Federated Learning with Isolated Subspace Training](https://neurips.cc/virtual/2023/poster/71476), accepted by the NeurIPS 2023.
+You should round the percentages in the histogram display, so a distribution of 5.21% should look the same as 5% in terms of `'#'` symbols.
+Your program should work on any input string of length 1500 or less, with output that should match the following examples, plus the defined test cases. Note that as before, the matching should be case-insensitive, hence why the `'T'` matches with `'t'`: in the example below:
 
-## Algorithm overview
-The overall procedure can be summarized into four main steps. i) Isolated subspace training. ii)Subspace searching. iii) Aggregation. iv) Model cleaning with consensus fusion.
-The following figure illustrates the overall process. 
-<div align=center><img width="700" height="450" src="https://github.com/git-disl/Lockdown/blob/main/materials/system.png"/></div>
+```console
+Enter in a string to calculate a histogram: This is such an exciting programming problem!
+Analyzing string "This is such an exciting programming problem!"
 
-## Get started
-### Package requirement
-* PyTorch 
-* Numpy
-* TorchVision
+  :::Histogram:::
 
-### Data  preparation
-Dataset FashionMnist and CIFAR10/100 will be automatically downloaded with TorchVision.
-
-### Command to run
-The following code run lockdown in its default setting
+  a: ##### (5.26)
+  b: ### (2.63)
+  c: ##### (5.26)
+  d:
+  e: ##### (5.26)
+  f:
+  g: ######## (7.89)
+  h: ##### (5.26)
+  i: ############# (13.16)
+  j:
+  k:
+  l: ### (2.63)
+  m: ######## (7.89)
+  n: ######## (7.89)
+  o: ##### (5.26)
+  p: ##### (5.26)
+  q:
+  r: ######## (7.89)
+  s: ######## (7.89)
+  t: ##### (5.26)
+  u: ### (2.63)
+  v:
+  w:
+  x: ### (2.63)
+  y:
+  z:
 ```
-python federated.py  --method lockdown 
-```
-You can also find script in directory `src/script`.
 
-### Files organization
-* The main simulation program is in `decentralized.py`, where we initialize the benign and poison dataset, call clients to do local training, call aggregator to do aggregation, do consensus fusion before testing, etc.
+<hr/>
 
-* The Lockdown's client local training logistic is in `agent_sparse.py`. 
-
-* The vanilla FedAvg' client local training logistic is in `agent.py`. 
-
-* The aggregation logistic is in `aggregation.py`, where we implement multiple defense baselines. 
-
-* The data poisoning, data preparation and data distribution logistic is in `utils.py`.
-
-### Logging and checkpoint
-The logging files will be contained in `src/logs`. Benign accuracy, ASR, and Backdoor accuracy will be tested in every round.
-For Lockdown, the three metrics correspond to the following logging format:
-```
-| Clean Val_Loss/Val_Acc: (Benign loss) / (Benign accuracy) |
-| Clean Attack Success Ratio: (ASR loss)/ (ASR) |
-| Clean Poison Loss/Clean Poison accuracy:: (Backdoor Loss)/ (Backdoor Acc)|
-```
-Model checkpoints will be saved every 25 rounds in the directory `src/checkpoint`.
-
-
-## Q&A
-
-If you have any questions, you can either open an issue or contact me (thuang374@gatech.edu), and I will reply as soon as I see the issue or email.
-
-## Acknowledgment
-The codebase is modified and adapted from one of our baselines [RLR](https://github.com/TinfoilHat0/Defending-Against-Backdoors-with-Robust-Learning-Rate).
-
-## License
-Lockdown is completely free and released under the [MIT License](https://github.com/git-disl/Lockdown/blob/main/materials/license).
-
-
-
-
+Some tips as you get started on this program:
+* Previously, we counted the occurrences of `'A'`-`'Z'` and `'a'`-`'z'`. You can do something
+very similar here, but you will also need to keep track of the total letters found so that you can
+calculate the percentages as well.
+* Using functions `isalpha()` and `tolower()` in <[string.h](https://en.cppreference.com/w/c/string/byte)> will make your code a bit cleaner / shorter.
+* Don't overthink the rounding portion. You can use the `roundf()` or
+  related functions in <[math.h](https://en.cppreference.com/w/c/numeric/math/round)>
+  but this isn't necessary. By adding 0.5 to a floating-point value and then casting from `float` to
+  `int`, you will get a similar result without requiring a function call.
+* Printing special character `"` in `printf()` requires a backspace first: printf(`"\""`) will print a single `"` symbol. To print `"Hello there"` with the quotes, you would call `printf(""\Hello there\"");`
+* The `fgets()` call includes the final newline character `'\n'`. Make sure not to print this when printing out the input string.   
