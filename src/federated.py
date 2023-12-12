@@ -194,8 +194,8 @@ if __name__ == '__main__':
         # plt.show()
 
         # After saving, you can close the plot if it's not needed to be shown
-        plt.close()
-        exit()
+        # plt.close()
+        # exit()
 
     global_mask = {}
     neurotoxin_mask = {}
