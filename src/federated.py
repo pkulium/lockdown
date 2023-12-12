@@ -26,13 +26,29 @@ from torchvision import transforms, datasets
 from torch.utils.data import random_split, DataLoader, Dataset
 import os
 from collections import OrderedDict
-import models_anp
+from anp_batchnorm import NoisyBatchNorm2d
 
 
 
 
 # SAVE_MODEL_NAME = 'combined_train.pt'
 SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
+import torch.nn as nn
+
+def replace_batchnorm_with_noisy(model):
+    for name, module in model.named_children():
+        if isinstance(module, nn.BatchNorm2d):
+            # Replace with NoisyBatchNorm2d
+            setattr(model, name,  NoisyBatchNorm2d(module.num_features, 
+                                                  eps=module.eps, 
+                                                  momentum=module.momentum, 
+                                                  affine=module.affine, 
+                                                  track_running_stats=module.track_running_stats))
+        else:
+            # Recursively apply to child modules
+            replace_batchnorm_with_noisy(module)
+
+
 
 def get_train_loader(args):
     print('==> Preparing train data..')
@@ -690,7 +706,8 @@ if __name__ == '__main__':
         checkpoint = torch.load(unlearned_model_path, map_location=device)
         print('Unlearned Model:', checkpoint['epoch'], checkpoint['clean_acc'], checkpoint['bad_acc'])
 
-        unlearned_model = getattr(models_anp, args.arch)(num_classes=10, norm_layer=models_anp.MaskBatchNorm2d)
+        unlearned_model = models.get_model(args.data).to(args.device)
+        replace_batchnorm_with_noisy(unlearned_model)
         load_state_dict(unlearned_model, orig_state_dict=checkpoint['state_dict'])
         unlearned_model = unlearned_model.to(device)
         criterion = torch.nn.CrossEntropyLoss().to(device)
