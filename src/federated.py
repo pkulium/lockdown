@@ -22,12 +22,119 @@ import time
 import logging
 from torch.utils.data import DataLoader, ConcatDataset
 import matplotlib.pyplot as plt
+from torchvision import transforms, datasets
+from torch.utils.data import random_split, DataLoader, Dataset
+import os
+from collections import OrderedDict
+import models_anp
+
+
+
 
 # SAVE_MODEL_NAME = 'combined_train.pt'
-# SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox.pt'
-SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd100_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet_prox0.01.pt'
 SAVE_MODEL_NAME = 'AckRatio4_40_MethodNone_datacifar10_alpha1_Rnd200_Epoch2_inject0.5_dense0.25_Aggavg_se_threshold0.0001_noniidTrue_maskthreshold20_attackbadnet.pt'
 
+def get_train_loader(args):
+    print('==> Preparing train data..')
+    MEAN_CIFAR10 = (0.4914, 0.4822, 0.4465)
+    STD_CIFAR10 = (0.2023, 0.1994, 0.2010)
+    tf_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        # transforms.RandomRotation(3),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(MEAN_CIFAR10, STD_CIFAR10)
+    ])
+
+    if (args.dataset == 'CIFAR10'):
+        trainset = datasets.CIFAR10(root='data/CIFAR10', train=True, download=True)
+    else:
+        raise Exception('Invalid dataset')
+
+    train_data = DatasetCL(args, full_dataset=trainset, transform=tf_train)
+    train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True)
+
+    return train_loader
+
+def train_step_unlearning(args, model, criterion, optimizer, data_loader):
+    model.train()
+    total_correct = 0
+    total_loss = 0.0
+    device = 'cuda:0'
+    for i, (images, labels) in enumerate(data_loader):
+        images, labels = images.to(device), labels.to(device)
+        optimizer.zero_grad()
+        output = model(images)
+        loss = criterion(output, labels)
+
+        pred = output.data.max(1)[1]
+        total_correct += pred.eq(labels.view_as(pred)).sum()
+        total_loss += loss.item()
+
+        nn.utils.clip_grad_norm_(model.parameters(), max_norm=20, norm_type=2)
+        (-loss).backward()
+        optimizer.step()
+
+    loss = total_loss / len(data_loader)
+    acc = float(total_correct) / len(data_loader.dataset)
+    return loss, acc
+
+
+def load_state_dict(net, orig_state_dict):
+    if 'state_dict' in orig_state_dict.keys():
+        orig_state_dict = orig_state_dict['state_dict']
+
+    new_state_dict = OrderedDict()
+    for k, v in net.state_dict().items():
+        if k in orig_state_dict.keys():
+            new_state_dict[k] = orig_state_dict[k]
+        else:
+            new_state_dict[k] = v
+    net.load_state_dict(new_state_dict)
+
+def clip_mask(unlearned_model, lower=0.0, upper=1.0):
+    params = [param for name, param in unlearned_model.named_parameters() if 'neuron_mask' in name]
+    with torch.no_grad():
+        for param in params:
+            param.clamp_(lower, upper)
+
+def train_step_recovering(args, unlearned_model, criterion, mask_opt, data_loader):
+    unlearned_model.train()
+    total_correct = 0
+    total_loss = 0.0
+    nb_samples = 0
+    for i, (images, labels) in enumerate(data_loader):
+        images, labels = images.to(device), labels.to(device)
+        nb_samples += images.size(0)
+
+        mask_opt.zero_grad()
+        output = unlearned_model(images)
+        loss = criterion(output, labels)
+        loss = args.alpha * loss
+
+        pred = output.data.max(1)[1]
+        total_correct += pred.eq(labels.view_as(pred)).sum()
+        total_loss += loss.item()
+        loss.backward()
+        mask_opt.step()
+        clip_mask(unlearned_model)
+
+    loss = total_loss / len(data_loader)
+    acc = float(total_correct) / nb_samples
+    return loss, acc
+
+def save_mask_scores(state_dict, file_name):
+    mask_values = []
+    count = 0
+    for name, param in state_dict.items():
+        if 'neuron_mask' in name:
+            for idx in range(param.size(0)):
+                neuron_name = '.'.join(name.split('.')[:-1])
+                mask_values.append('{} \t {} \t {} \t {:.4f} \n'.format(count, neuron_name, idx, param[idx].item()))
+                count += 1
+    with open(file_name, "w") as f:
+        f.write('No \t Layer Name \t Neuron Idx \t Mask Score \n')
+        f.writelines(mask_values)
 
 def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None):
     """ Do a local training over the received global model, return the update """
@@ -57,15 +164,43 @@ def global_train(args,global_model, criterion, round=None, neurotoxin_mask=None)
         if round_index % 10 == 0:
             with torch.no_grad():
                 val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader,args, rnd, num_target)
-                print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                print(f'| Val_Acc:   {val_acc:.3f} |')
                 acc_vec.append(val_acc)
                 per_class_vec.append(val_per_class_acc)
 
                 poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,poisoned_val_loader, args, rnd, num_target)
                 asr_vec.append(asr)
-                print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+                print(f'| Attack Success Ratio: {asr:.3f} |')
     global_model.eval()
     return global_model
+
+class DatasetCL(Dataset):
+    def __init__(self, args, full_dataset=None, transform=None):
+        self.dataset = self.random_split(full_dataset=full_dataset, ratio=args.ratio)
+        self.transform = transform
+        self.dataLen = len(self.dataset)
+
+    def __getitem__(self, index):
+        image = self.dataset[index][0]
+        label = self.dataset[index][1]
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, label
+
+    def __len__(self):
+        return self.dataLen
+
+    def random_split(self, full_dataset, ratio):
+        print('full_train:', len(full_dataset))
+        train_size = int(ratio * len(full_dataset))
+        drop_size = len(full_dataset) - train_size
+        train_dataset, drop_dataset = random_split(full_dataset, [train_size, drop_size])
+        print('train_size:', len(train_dataset), 'drop_size:', len(drop_dataset))
+
+        return train_dataset
+
     
 if __name__ == '__main__':
     torch.backends.cudnn.enabled = True
@@ -100,11 +235,11 @@ if __name__ == '__main__':
         fileHandler.setFormatter(logFormatter)
         rootLogger.addHandler(fileHandler)
 
-    # sys.stderr.write = rootLogger.error
-    # sys.stdout.write = rootLogger.info
+    # sys.stderr.write = rootlogging.error
+    # sys.stdout.write = rootlogging.info
     # consoleHandler = logging.StreamHandler(sys.stdout)
     # consoleHandler.setFormatter(logFormatter)
-    # rootLogger.addHandler(consoleHandler)
+    # rootlogging.addHandler(consoleHandler)
     logging.info(args)
 
     cum_poison_acc_mean = 0
@@ -154,8 +289,7 @@ if __name__ == '__main__':
 
     # initialize a model, and the agents
     global_model = models.get_model(args.data).to(args.device)
-    if args.rounds == 0:
-        # global_model.load_state_dict(torch.load(f'/work/LAS/wzhang-lab/mingl/code/backdoor/lockdown/src/checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
+    if args.rounds == 0 or args.rounds == -1:
         global_model.load_state_dict(torch.load(f'./checkpoint/{SAVE_MODEL_NAME}')['model_state_dict'])
 
         # global_model_1 = copy.deepcopy(global_model)
@@ -293,7 +427,7 @@ if __name__ == '__main__':
                                                                                   args, rnd, num_target)
             # writer.add_scalar('Validation/Loss', val_loss, rnd)
             # writer.add_scalar('Validation/Accuracy', val_acc, rnd)
-            logging.info(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+            logging.info(f'| Val_Acc:   {val_acc:.3f} |')
             logging.info(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
             acc_vec.append(val_acc)
             per_class_vec.append(val_per_class_acc)
@@ -302,7 +436,7 @@ if __name__ == '__main__':
                                                                             poisoned_val_loader, args, rnd, num_target)
             cum_poison_acc_mean += asr
             asr_vec.append(asr)
-            logging.info(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+            logging.info(f'| Attack Success Ratio: {asr:.3f} |')
 
             poison_loss, (poison_acc, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion,
                                                                                    poisoned_val_only_x_loader, args,
@@ -330,7 +464,7 @@ if __name__ == '__main__':
                                                                                       args, rnd, num_target)
                 # writer.add_scalar('Clean Validation/Loss', val_loss, rnd)
                 # writer.add_scalar('Clean Validation/Accuracy', val_acc, rnd)
-                logging.info(f'| Clean Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                logging.info(f'| Clean Val_Acc:   {val_acc:.3f} |')
                 logging.info(f'| Clean Val_Per_Class_Acc: {val_per_class_acc} ')
                 clean_acc_vec.append(val_acc)
                 clean_per_class_vec.append(val_per_class_acc)
@@ -405,34 +539,217 @@ if __name__ == '__main__':
     if args.rounds > 0:
         exit()
     elif args.rounds < 0:
-        combined_dataset = ConcatDataset([agents[agent_id].train_loader.dataset for agent_id in range(args.num_agents)])
-        # Create a single DataLoader
-        args.combined_train_loader = DataLoader(
-            # train_dataset_copy,
-            combined_dataset,
-            batch_size=args.bs,  # Make sure 'args.bs' is defined and accessible
-            shuffle=True,
-            num_workers=args.num_workers,  # Make sure 'args.num_workers' is defined and accessible
-            pin_memory=False,
-            drop_last=True
-        )   
-        args.val_loader = val_loader
-        args.poisoned_val_loader = poisoned_val_loader
-        global_model = global_train(args, global_model, criterion, round=200)
-        PATH = "checkpoint/combined_train_prox.pt"
-        torch.save({'model_state_dict': global_model.state_dict()}, PATH)
+        if args.rounds != -1:
+            combined_dataset = ConcatDataset([agents[agent_id].train_loader.dataset for agent_id in range(args.num_agents)])
+            # Create a single DataLoader
+            args.combined_train_loader = DataLoader(
+                # train_dataset_copy,
+                combined_dataset,
+                batch_size=args.bs,  # Make sure 'args.bs' is defined and accessible
+                shuffle=True,
+                num_workers=args.num_workers,  # Make sure 'args.num_workers' is defined and accessible
+                pin_memory=False,
+                drop_last=True
+            )   
+            args.val_loader = val_loader
+            args.poisoned_val_loader = poisoned_val_loader
+            global_model = global_train(args, global_model, criterion, round=200)
+            PATH = "checkpoint/combined_train_prox.pt"
+            torch.save({'model_state_dict': global_model.state_dict()}, PATH)
+            exit()
+        else:
+             for rnd in tqdm(range(1)):
+                logging.info("--------round {} ------------".format(rnd))
+                print("--------round {} ------------".format(rnd))
+                # mask = torch.ones(n_model_params)
+                rnd_global_params = parameters_to_vector([ copy.deepcopy(global_model.state_dict()[name]) for name in global_model.state_dict()])
+
+                # agent_updates_dict_prev = copy.deepcopy(agent_updates_dict)
+                agent_updates_dict = {}
+                chosen = np.random.choice(args.num_agents, math.floor(args.num_agents * args.agent_frac), replace=False)
+                if args.method == "lockdown" or args.method == "fedimp":
+                    old_mask = [copy.deepcopy(agent.mask) for agent in agents]
+                for agent_id in chosen:
+                    # logging.info(torch.sum(rnd_global_params))
+                    global_model = global_model.to(args.device)
+                    if args.method == "lockdown" or args.method == "fedimp":
+                        update = agents[agent_id].local_train(global_model, criterion, rnd, global_mask=global_mask, neurotoxin_mask = neurotoxin_mask, updates_dict=updates_dict)
+                    else:
+                        update = agents[agent_id].local_train(global_model, criterion, rnd, neurotoxin_mask=neurotoxin_mask)
+                    agent_updates_dict[agent_id] = update
+                    if agent_id == args.num_agents - 1:
+                        args.val_frac = 0.01
+                        args.clean_label = -1
+                        args.print_every = 500
+                        args.batch_size = 128
+                        _, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
+                        mask_values = sorted(mask_values, key=lambda x: float(x[2]))
+                        print(f'mask_values:{mask_values[0]} - {mask_values[100]} - {mask_values[1000]}')
+                        local_model = copy.deepcopy(global_model)
+                        print('-' * 64)
+                        print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
+                        results = []
+                        thresholds = np.arange(0, pruning_max + pruning_step, pruning_step)
+                        start = 0
+                        print('pruning')
+                        for threshold in thresholds:
+                            print('-' * 64)
+                            idx = start
+                            for idx in range(start, len(mask_values)):
+                                if float(mask_values[idx][2]) <= threshold:
+                                    pruning(local_model, mask_values[idx])
+                                    start += 1
+                                else:
+                                    break
+                            layer_name, neuron_idx, value = mask_values[idx][0], mask_values[idx][1], mask_values[idx][2]
+                            print(f'layer_name:{layer_name}, neuron_idx:{neuron_idx}, value:{value}')
+                            with torch.no_grad():
+                                val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader, args, rnd, num_target)
+                                print(f'| Val_Acc:   {val_acc:.3f} |')
+                                acc_vec.append(val_acc)
+                                per_class_vec.append(val_per_class_acc)
+                                poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion, poisoned_val_loader, args, rnd, num_target)
+                                cum_poison_acc_mean += asr
+                                asr_vec.append(asr)
+                                print(f'| Attack Success Ratio: {asr:.3f} |')
+                        exit()
+                    utils.vector_to_model(copy.deepcopy(rnd_global_params), global_model)
+
+    else:
+        with torch.no_grad():
+            val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader, args, rnd, num_target)
+            print(f'| Val_Acc:   {val_acc:.3f} |')
+            acc_vec.append(val_acc)
+            per_class_vec.append(val_per_class_acc)
+            poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion, poisoned_val_loader, args, rnd, num_target)
+            cum_poison_acc_mean += asr
+            asr_vec.append(asr)
+            print(f'| Attack Success Ratio: {asr:.3f} |')
+
+        args.dataset = 'CIFAR10'
+        args.clean_threshold = 0.25
+        args.unlearning_lr = 0.01
+        args.unlearning_epochs = 20
+        args.schedule = [10, 20]
+        args.ratio = 0.01
+        args.batch_size = 128
+        defense_data_loader = get_train_loader(args) 
+        criterion = torch.nn.CrossEntropyLoss().to(args.device)
+        optimizer = torch.optim.SGD(global_model.parameters(), lr=args.unlearning_lr, momentum=0.9, weight_decay=5e-4)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=args.schedule, gamma=0.1)
+
+        logging.info('----------- Model Unlearning --------------')
+        logging.info('Epoch \t lr \t Time \t TrainLoss \t TrainACC \t PoisonLoss \t PoisonACC \t CleanLoss \t CleanACC')
+        for epoch in range(0, args.unlearning_epochs + 1):
+            start = time.time()
+            lr = optimizer.param_groups[0]['lr']
+            train_loss, train_acc = train_step_unlearning(args=args, model=global_model, criterion=criterion, optimizer=optimizer,
+                                        data_loader=defense_data_loader)
+            scheduler.step()
+            end = time.time()
+            with torch.no_grad():
+                val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader, args, rnd, num_target)
+                # print(f'| Val_Acc:   {val_acc:.3f} |')
+                acc_vec.append(val_acc)
+                per_class_vec.append(val_per_class_acc)
+                poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion, poisoned_val_loader, args, rnd, num_target)
+                cum_poison_acc_mean += asr
+                asr_vec.append(asr)
+                # print(f'| Attack Success Ratio: {asr:.3f} |')
+            logging.info(
+                '%d \t %.3f \t %.1f \t %.4f \t %.4f \t %.4f \t %.4f \t %.4f \t %.4f',
+                epoch, lr, end-start, train_loss, train_acc, poison_loss, asr,
+                val_loss, val_acc
+            )
+
+            if train_acc <= args.clean_threshold:
+                # save the last checkpoint
+                file_path = os.path.join('checkpoint/unlearned_model_last.tar')
+                # torch.save(net.state_dict(), os.path.join(args.output_dir, 'unlearned_model_last.tar'))
+                torch.save({
+                    'epoch': epoch,
+                    'state_dict': global_model.state_dict(),
+                    'clean_acc': val_acc,
+                    'bad_acc': asr,
+                    'optimizer': optimizer.state_dict(),
+                }, file_path)
+                break
+        
+        logging.info('----------- Model Recovering --------------')
+        # Step 2: load unleanred model checkpoints
+        args.unlearned_model_path = 'checkpoint/unlearned_model_last.tar'
+        args.arch = 'resnet18'
+        args.recovering_lr = 0.2
+        args.recovering_epochs = 20
+        device = 'cuda:0'
+        if args.unlearned_model_path is not None:
+            unlearned_model_path = args.unlearned_model_path
+        else:
+            unlearned_model_path = os.path.join(args.output_weight, 'unlearned_model_last.tar')
+
+        checkpoint = torch.load(unlearned_model_path, map_location=device)
+        print('Unlearned Model:', checkpoint['epoch'], checkpoint['clean_acc'], checkpoint['bad_acc'])
+
+        unlearned_model = getattr(models_anp, args.arch)(num_classes=10, norm_layer=models_anp.MaskBatchNorm2d)
+        load_state_dict(unlearned_model, orig_state_dict=checkpoint['state_dict'])
+        unlearned_model = unlearned_model.to(device)
+        criterion = torch.nn.CrossEntropyLoss().to(device)
+
+        parameters = list(unlearned_model.named_parameters())
+        mask_params = [v for n, v in parameters if "neuron_mask" in n]
+        mask_optimizer = torch.optim.SGD(mask_params, lr=args.recovering_lr, momentum=0.9)
+
+        # Recovering
+        logging.info('Epoch \t lr \t Time \t TrainLoss \t TrainACC \t PoisonLoss \t PoisonACC \t CleanLoss \t CleanACC')
+        for epoch in range(1, args.recovering_epochs + 1):
+            start = time.time()
+            lr = mask_optimizer.param_groups[0]['lr']
+            train_loss, train_acc = train_step_recovering(args=args, unlearned_model=unlearned_model, criterion=criterion, data_loader=defense_data_loader,
+                                            mask_opt=mask_optimizer)
+            end = time.time()
+            with torch.no_grad():
+                val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader, args, rnd, num_target)
+                # print(f'| Val_Acc:   {val_acc:.3f} |')
+                acc_vec.append(val_acc)
+                per_class_vec.append(val_per_class_acc)
+                poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion, poisoned_val_loader, args, rnd, num_target)
+                cum_poison_acc_mean += asr
+                asr_vec.append(asr)
+                # print(f'| Attack Success Ratio: {asr:.3f} |')
+            logging.info(
+                '%d \t %.3f \t %.1f \t %.4f \t %.4f \t %.4f \t %.4f \t %.4f \t %.4f',
+                epoch, lr, end-start, train_loss, train_acc, poison_loss, asr,
+                val_loss, val_acc
+            )
+        save_mask_scores(unlearned_model.state_dict(), os.path.join(args.log_root, 'mask_values.txt'))
+        del unlearned_model
+
+
         exit()
 
-    with torch.no_grad():
-        val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(global_model, criterion, val_loader, args, rnd, num_target)
-        print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-        acc_vec.append(val_acc)
-        per_class_vec.append(val_per_class_acc)
-        poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(global_model, criterion, poisoned_val_loader, args, rnd, num_target)
-        cum_poison_acc_mean += asr
-        asr_vec.append(asr)
-        print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     args.val_frac = 0.01
     args.clean_label = -1
     args.print_every = 500
@@ -449,17 +766,6 @@ if __name__ == '__main__':
     pruning_max, pruning_step = 0.95, 0.05
     best_diff, best_diff_ = 0, 0
 
-    # |settings: 0.01, 1.0, 1, 0.6, 10 |
-    # | Val_Loss/Val_Acc: 1.027 / 0.638 |
-    # | Attack Loss/Attack Success Ratio: 3.751 / 0.034 |
-    # for _ in range(1):
-    #     for mask_lr in [0.01, 0.1]:
-    #         for anp_eps in [0.4, 0.8]:
-    #             for anp_steps in [1]:
-    #                 for anp_alpha in [0.2, 0.6]:
-    #                     for round in [5, 10]:     
-    # Best Configuration:  0.1, 1.0, 1, 0.2, 10 
-    # Best Configuration Central:  0.2, 0,4, 1, 0.2, 10 
     for _ in range(1):
         for mask_lr in [0.1]:
             for anp_eps in [1.0]:
@@ -468,15 +774,6 @@ if __name__ == '__main__':
                         for round in [10]:
                             _, mask_values =  train_mask(-1, global_model, criterion, server_train_loader, mask_lr, anp_eps, anp_steps, anp_alpha, round)
                             id2mask_values[-1] = torch.tensor([mask_values[i][-1] for i in range(len(mask_values))])
-                            # numpy_array = id2mask_values[-1].numpy()
-                            # plt.plot(numpy_array)
-                            # plt.title("Distribution of mask")
-                            # plt.xlabel("Index")
-                            # plt.ylabel("Value")
-                            # plt.savefig('mask_distribution_central.png', bbox_inches='tight')
-                            # # plt.show()
-                            # plt.close()
-                            # exit()
                             mask_values = sorted(mask_values, key=lambda x: float(x[2]))
                             print(f'mask_values:{mask_values[0]} - {mask_values[100]} - {mask_values[1000]}')
                             local_model = copy.deepcopy(global_model)
@@ -485,17 +782,7 @@ if __name__ == '__main__':
                             results = []
                             thresholds = np.arange(0, pruning_max + pruning_step, pruning_step)
                             start = 0
-                            print('before pruning')
-                            with torch.no_grad():
-                                val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader, args, rnd, num_target)
-                                print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
-                                acc_vec.append(val_acc)
-                                per_class_vec.append(val_per_class_acc)
-                                poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion, poisoned_val_loader, args, rnd, num_target)
-                                cum_poison_acc_mean += asr
-                                asr_vec.append(asr)
-                                print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-                            print('after pruning')
+                            print('pruning')
                             for threshold in thresholds:
                                 print('-' * 64)
                                 idx = start
@@ -509,19 +796,13 @@ if __name__ == '__main__':
                                 print(f'layer_name:{layer_name}, neuron_idx:{neuron_idx}, value:{value}')
                                 with torch.no_grad():
                                     val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader, args, rnd, num_target)
-                                    print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                                    print(f'| Val_Acc:   {val_acc:.3f} |')
                                     acc_vec.append(val_acc)
                                     per_class_vec.append(val_per_class_acc)
                                     poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion, poisoned_val_loader, args, rnd, num_target)
                                     cum_poison_acc_mean += asr
                                     asr_vec.append(asr)
-                                    print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
-                                    # if val_acc > best_val_acc:
-                                    #     best_val_acc = val_acc
-                                    #     best_val_acc_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
-                                    # if asr < best_asr:
-                                    #     best_asr = asr
-                                    #     best_asr_ = f'{mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round}'
+                                    print(f'| Attack Success Ratio: {asr:.3f} |')
                                     if val_acc - asr > best_diff:
                                         best_val_acc = val_acc
                                         best_asr = asr
@@ -534,13 +815,13 @@ if __name__ == '__main__':
                                     local_model = global_train(args, local_model, criterion, round=1)
                                     with torch.no_grad():
                                         val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader, args, rnd, num_target)
-                                        print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                                        print(f'| Val_Acc:   {val_acc:.3f} |')
                                         acc_vec.append(val_acc)
                                         per_class_vec.append(val_per_class_acc)
                                         poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion, poisoned_val_loader, args, rnd, num_target)
                                         cum_poison_acc_mean += asr
                                         asr_vec.append(asr)
-                                        print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+                                        print(f'| Attack Success Ratio: {asr:.3f} |')
                                     print('finetune done')
 
         print(f'best_val_acc:{best_val_acc}')
@@ -565,13 +846,13 @@ if __name__ == '__main__':
             print(f'|settings: {mask_lr}, {anp_eps}, {anp_steps}, {anp_alpha}, {round} |')
             with torch.no_grad():
                 val_loss, (val_acc, val_per_class_acc), _ = utils.get_loss_n_accuracy(local_model, criterion, val_loader,args, rnd, num_target)
-                print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
+                print(f'| Val_Acc:   {val_acc:.3f} |')
                 acc_vec.append(val_acc)
                 per_class_vec.append(val_per_class_acc)
                 poison_loss, (asr, _), fail_samples = utils.get_loss_n_accuracy(local_model, criterion, poisoned_val_loader, args, rnd, num_target)
                 cum_poison_acc_mean += asr
                 asr_vec.append(asr)
-                print(f'| Attack Loss/Attack Success Ratio: {poison_loss:.3f} / {asr:.3f} |')
+                print(f'| Attack Success Ratio: {asr:.3f} |')
 
         cos = nn.CosineSimilarity(dim=1, eps=1e-6)
         for agent_id in chosen:
