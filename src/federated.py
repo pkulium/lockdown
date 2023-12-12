@@ -707,7 +707,9 @@ if __name__ == '__main__':
         print('Unlearned Model:', checkpoint['epoch'], checkpoint['clean_acc'], checkpoint['bad_acc'])
 
         unlearned_model = models.get_model(args.data).to(args.device)
+        print('replace batchnorm')
         replace_batchnorm_with_noisy(unlearned_model)
+        print('replace batchnorm done')
         load_state_dict(unlearned_model, orig_state_dict=checkpoint['state_dict'])
         unlearned_model = unlearned_model.to(device)
         criterion = torch.nn.CrossEntropyLoss().to(device)
